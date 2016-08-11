@@ -1,0 +1,3 @@
+define var requestURL = "http://www.kongkongmao.club"
+define var endpoint = "%requestURL%/api"
+request 

@@ -1,0 +1,23 @@
+{
+	"customlogin":{
+		"method":"POST",
+		"url":"http://www.kongkongmao.club/mc/auth",
+		"args":[
+			{"param":"boom",
+			 "value":"username",
+			 "mode":"builtin"},
+			{"param":"boom2",
+			 "value":"password",
+			 "mode":"query"}
+		],
+		"return":[
+			{"if":{"root":"json",
+					"func":"valueOf",
+					"param":"isValid",
+					"operator":"=",
+					"value":"true"},
+			"then":{"func":"login"}
+			}
+		]
+	}
+}

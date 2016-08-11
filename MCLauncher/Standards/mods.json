@@ -1,0 +1,37 @@
+{
+	"mods" : [
+		{"modid":"magicera",
+		"display":"A Magic Mod.",
+		"filename":"magicera-10086.jar",
+		"md5":"1259300852999",
+		"type":"core",
+		"cfg":[{
+			"url":"magicera-cfg.cfg"
+			"local":"MagicEra.cfg"
+			}],
+		"categories":[]
+		} ,
+		{"modid":"optifine",
+		"display":"Optifine.",
+		"filename":"optifine-12450.jar",
+		"md5":"2333333",
+		"type":"optimization",
+		"cfg":[{
+			"url":"optifine.txt"
+			"local":"../optionsof.txt"
+			}],
+		"categories":[]
+		} ,
+		{"modid":"AnimationCore",
+		"display":"For animation.",
+		"filename":"animation-core-1.7.10-66666.jar",
+		"md5":"mdzzljhaozisb",
+		"type":"optional",
+		"cfg":[{
+			"url":"animation-core-cfg.cfg"
+			"local":"AnimationCore.cfg"
+			}],
+		"categories":[""]
+		}
+	]
+}
