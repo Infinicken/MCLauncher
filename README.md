@@ -1,5 +1,6 @@
 # MCLauncher
 A Minecraft launcher that I made long time ago
+
 ## Features
 MCLauncher is capable of
 * ~~Listening to reason~~
@@ -11,7 +12,9 @@ MCLauncher is capable of
 * Being translated to multiple languages
 * Updating itself
 * Downloading modpacks from a specific server
+
 It also has integrated JavaScript support.
+
 ## Dependencies
 Dependencies required to compile:
 * Newtonsoft.Json
@@ -19,4 +22,4 @@ Dependencies required to compile:
 * DotNetZip
 * Noesis.Javascript
 ## Server and JavaScript integration
-See (this page)[http://kongkongmao.club/mc/launcher]
+See [this page](http://kongkongmao.club/mc/launcher)
