@@ -13,6 +13,7 @@ Public NotInheritable Class Logger
     Private Shared tenlinecount As Integer = 0
     Private Shared fileLog As IO.StreamWriter
     Private Shared filePath As String
+    Private Shared isStreamClosed As Boolean
     Public Enum LogLevel
         INFO = 0
         ERR = 1
@@ -22,6 +23,12 @@ Public NotInheritable Class Logger
         DEBUG = 5
     End Enum
     Public Shared Sub log(msg As String, level As LogLevel)
+        If isStreamClosed Then
+            MsgBox("Caught attempt to log after logger has been closed." & vbCrLf &
+                           "Offender: " & Environment.StackTrace.Split(CChar(vbCrLf))(3) & vbCrLf &
+                           $"Trying to log: [{level.ToString}]{msg}")
+            Return
+        End If
         Threads.Mutex.WaitOne()
         SyncLock fileLog
             SyncLock tenline
@@ -41,11 +48,17 @@ Public NotInheritable Class Logger
         Threads.Mutex.ReleaseMutex()
     End Sub
     Public Shared Sub [stop]()
-        fileLog.Close()
-        Using zip As New ZipFile()
-            zip.AddFile(filePath)
-            zip.Save(IO.Path.Combine(IO.Path.GetDirectoryName(filePath), IO.Path.GetFileNameWithoutExtension(filePath) & ".zip"))
-            IO.File.Delete(filePath)
-        End Using
+        If Not isStreamClosed Then
+            isStreamClosed = True
+            fileLog.Close()
+            Using zip As New ZipFile()
+                zip.AddFile(filePath)
+                zip.Save(IO.Path.Combine(IO.Path.GetDirectoryName(filePath), IO.Path.GetFileNameWithoutExtension(filePath) & ".zip"))
+                IO.File.Delete(filePath)
+            End Using
+        Else
+            MsgBox("Caught attempt to close an already closed logger." & vbCrLf &
+                           "Offender: " & Environment.StackTrace.Split(CChar(vbCrLf))(3))
+        End If
     End Sub
 End Class

@@ -45,7 +45,8 @@ Public Class MainGUI
     End Sub
 
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
-        ScriptServer.run(InputBox("Script line"))
+        ScriptEditor.Show()
+        'ScriptServer.run(InputBox("Script line"))
         'ToastRenderer.addToast(New Toast("Mi", "Yan Su!", My.Resources.ic_play_arrow_black_48dp_1x, True, Toast.ToastLength.Short))
         'Throw New System.IndexOutOfRangeException("test")
     End Sub

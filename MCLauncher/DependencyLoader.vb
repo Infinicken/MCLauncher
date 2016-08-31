@@ -35,8 +35,7 @@ Public Class DependencyLoader
             Next
         End If
         Dim dl As New FileDownload
-        dl.StartDownloadingAwait("https://s3.amazonaws.com/Minecraft.Download/versions/" & ver & "/" & ver & ".json", Path.GetFullPath(loc) + "\ver\" & ver & ".json")
-        Dim json As VersionJSON = JsonConvert.DeserializeObject(Of VersionJSON)((New StreamReader(Path.GetFullPath(loc) + "\ver\" & ver & ".json").ReadToEnd))
+        Dim json As VersionJSON = getVersionJSONForVersion(loc, ver)
         Dim osver As String = If(My.Computer.Info.OSFullName.Contains("Windows"), "windows", "osx")
         For Each dep As VersionJSON.Dependency In json.libraries
             Console.WriteLine("Downloading dependency " & dep.name)
@@ -119,6 +118,16 @@ Public Class DependencyLoader
             End If
         Next
     End Sub
+
+    Public Shared Function getVersionJSONForVersion(loc As String, ver As String) As VersionJSON
+        If File.Exists(Path.GetFullPath(loc) & "\ver\" & ver & ".json") Then
+            Return JsonConvert.DeserializeObject(Of VersionJSON)((New StreamReader(Path.GetFullPath(loc) & "\ver\" & ver & ".json").ReadToEnd))
+        Else
+            Dim dl As New FileDownload
+            dl.StartDownloadingAwait("https://s3.amazonaws.com/Minecraft.Download/versions/" & ver & "/" & ver & ".json", Path.GetFullPath(loc) + "\ver\" & ver & ".json")
+            Return JsonConvert.DeserializeObject(Of VersionJSON)((New StreamReader(Path.GetFullPath(loc) + "\ver\" & ver & ".json").ReadToEnd))
+        End If
+    End Function
 End Class
 
 Public Class VersionJSON

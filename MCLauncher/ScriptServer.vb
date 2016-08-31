@@ -50,10 +50,16 @@ Public NotInheritable Class ScriptServer
 #Region ".NET Wrapper Classes"
     Public Class DotNetCodeWrapper
         Public Sub compileRunnable(code As String)
-            ScriptServer.DynamicCompileAndRunDotNetCode(False, code)
+            If ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_POTENTIAL_UNSAFE_CODE) Then
+                ScriptServer.DynamicCompileAndRunDotNetCode(False, code)
+            End If
         End Sub
         Public Function compileCallable(code As String) As Object
-            Return ScriptServer.DynamicCompileAndRunDotNetCode(True, code)
+            If ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_POTENTIAL_UNSAFE_CODE) Then
+                Return ScriptServer.DynamicCompileAndRunDotNetCode(True, code)
+            Else
+                Return Nothing
+            End If
         End Function
         Public Sub alert(prompt As String)
             MsgBox(prompt)
@@ -66,6 +72,9 @@ Public NotInheritable Class ScriptServer
         Public Sub log(t As Object)
             Logger.log(CStr(t), Logger.LogLevel.INFO)
         End Sub
+        Public Sub logDebug(t As Object)
+            Debug.WriteLine(CStr(t))
+        End Sub
     End Class
     Public Class MojangAPIWrapper
         Public Function verify(accessToken As String) As Boolean
@@ -75,18 +84,27 @@ Public NotInheritable Class ScriptServer
             PremiumVerifier.refreshAccessToken(accessToken, PremiumVerifier.ClientToken, False)
         End Sub
         Public Function getInfo() As String
-            Return PremiumVerifier.getUserInfo()
+            If ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_SENSITIVE_DATA) Then
+                Return PremiumVerifier.getUserInfo()
+            End If
+            Return ""
         End Function
         Public ReadOnly Property accessToken As String
             Get
-                Return PremiumVerifier.AccessToken
+                If ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_SENSITIVE_DATA) Then
+                    Return PremiumVerifier.AccessToken
+                End If
+                Return ""
             End Get
         End Property
     End Class
     Public Class PremiumWrapper
         Public ReadOnly Property accessToken As String
             Get
-                Return PremiumVerifier.AccessToken
+                If ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_SENSITIVE_DATA) Then
+                    Return PremiumVerifier.AccessToken
+                End If
+                Return ""
             End Get
         End Property
         Public ReadOnly Property username As String
@@ -96,14 +114,15 @@ Public NotInheritable Class ScriptServer
         End Property
         Public ReadOnly Property useremail As String
             Get
-                Return PremiumVerifier.UserEmail
+                If ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_SENSITIVE_DATA) Then
+                    Return PremiumVerifier.UserEmail
+                End If
+                Return ""
             End Get
         End Property
     End Class
     Public Class LauncherWrapper
         Public Class LanguageWrapper
-            Friend Sub New()
-            End Sub
             Public Sub addLocal(key As String, lang As String, local As String)
                 I18n.addKey(key, I18n.Language.getFromISOName(lang), local)
             End Sub
@@ -128,7 +147,10 @@ Public NotInheritable Class ScriptServer
                 ServerSideManager.fetchFromServer()
             End Sub
             Public Function send(url As String, method As String, payload As String) As String
-                Return ServerSideManager.Post(url, payload, "application/json", method)
+                If ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_INTERNET_ACCESS) Then
+                    Return ServerSideManager.Post(url, payload, "application/json", method)
+                End If
+                Return ""
             End Function
         End Class
         Public ReadOnly Property server As New ServerWrapper()
@@ -140,35 +162,80 @@ Public NotInheritable Class ScriptServer
         Public ReadOnly Property toast As New ToastWrapper()
         Public Class DataWrapper
             Public Sub save(name As String, data As String)
-                scriptData.Add(New ScriptSaveData(name) With {.data = data})
+                If Not scriptData.ContainsKey(name) Then
+                    scriptData.Add(name, data)
+                Else
+                    scriptData(name) = data
+                End If
             End Sub
             Public Function read(name As String) As String
                 Dim ret As String = ""
                 Threads.Mutex.WaitOne()
-                For Each item As ScriptSaveData In scriptData
-                    If item.name = name Then
-                        ret = item.data
-                    End If
-                Next
+                If scriptData.ContainsKey(name) Then
+                    ret = scriptData(name)
+                End If
                 Threads.Mutex.ReleaseMutex()
                 Return ret
             End Function
             Public Sub delete(name As String)
                 Threads.Mutex.WaitOne()
-                Dim list As New List(Of ScriptSaveData)(scriptData)
+                Dim list As New Dictionary(Of String, String)(scriptData)
                 Threads.Mutex.ReleaseMutex()
-                For Each item As ScriptSaveData In list
-                    If item.name = name Then
-                        scriptData.Remove(item)
+                For Each item As KeyValuePair(Of String, String) In list
+                    If item.Key = name Then
+                        scriptData.Remove(item.Key)
                     End If
                 Next
             End Sub
+            Public Function exist(name As String) As Boolean
+                Dim ret As Boolean = False
+                Threads.Mutex.WaitOne()
+                ret = scriptData.ContainsKey(name)
+                Threads.Mutex.ReleaseMutex()
+                Return ret
+            End Function
         End Class
         Public ReadOnly Property data As New DataWrapper()
+        Public Class PermissionWrapper
+            Public ReadOnly Property sensitive_data As ScriptPermMgr.Permissions = ScriptPermMgr.Permissions.PERMISSION_SENSITIVE_DATA
+            Public ReadOnly Property unsafe_code As ScriptPermMgr.Permissions = ScriptPermMgr.Permissions.PERMISSION_POTENTIAL_UNSAFE_CODE
+            Public ReadOnly Property internet As ScriptPermMgr.Permissions = ScriptPermMgr.Permissions.PERMISSION_INTERNET_ACCESS
+            Public Sub create()
+                ScriptPermMgr.newSession()
+            End Sub
+            Public Sub loadPerm(identifier As String)
+                ScriptPermMgr.resumeSession(identifier)
+            End Sub
+            Public Sub request(ParamArray p As ScriptPermMgr.Permissions())
+                tempPause = True
+                scriptStopwatch.Stop()
+                ScriptPermMgr.requestPermissions(p)
+                scriptStopwatch.Start()
+                tempPause = False
+            End Sub
+            Public Function setPermPersist(bool As Boolean) As String
+                ScriptPermMgr.setShouldPersist(bool)
+                Return ScriptPermMgr.getCurrentGuid.ToString()
+            End Function
+            Public Function canI(perm As ScriptPermMgr.Permissions) As Boolean
+                Return ScriptPermMgr.hasPermission(perm)
+            End Function
+            Public Function listAllPerm() As String
+                Return Newtonsoft.Json.JsonConvert.SerializeObject(ScriptPermMgr.currentPermissionSet)
+            End Function
+        End Class
+        Public ReadOnly Property perm As New PermissionWrapper()
+        Public Sub test()
+            MsgBox(New Version("1.10.2").ToString)
+        End Sub
+        Public Function getScriptRunningTime() As Long
+            Return scriptStopwatch.ElapsedMilliseconds
+        End Function
         Public Sub gc()
             System.GC.Collect()
         End Sub
         Public Function getConfigString() As String
+            If Not ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_SENSITIVE_DATA) Then Return ""
             If Not IO.File.Exists("config.cfg") Then Return ""
             Dim config As New IO.StreamReader("config.cfg")
             Dim ret As String = BasicEncryption.func_46293525_2_(config.ReadToEnd())
@@ -176,39 +243,64 @@ Public NotInheritable Class ScriptServer
             config.Dispose()
             Return ret
         End Function
+        Public Sub flushConfig()
+            ConfigManager.writeToConfig()
+        End Sub
     End Class
 #End Region
-    Public Class ScriptSaveData
-        Public Sub New(name As String)
-            Me.name = name
-        End Sub
-        Public name As String = ""
-        Public data As String = ""
-    End Class
     Public Shared jsContext As New Noesis.Javascript.JavascriptContext
-    Public Shared scriptData As New List(Of ScriptSaveData)
+    Public Shared scriptData As New Dictionary(Of String, String)
+    Private Shared scriptStopwatch As Stopwatch
+    Private Shared tempPause As Boolean = False
+    Private Shared tooLongPromptTime As Integer
+    Private Shared immediateDeathTime As Integer
     Private Sub New()
     End Sub
 
     Shared Sub New()
         Threads.createThread("JavaScript-V8")
+        Threads.createThread("JavaScript-V8-Helper")
         jsContext.SetParameter("DotNet", New DotNetCodeWrapper())
         jsContext.SetParameter("console", New ConsoleWrapper())
         jsContext.SetParameter("MojangAPI", New MojangAPIWrapper())
         jsContext.SetParameter("Premium", New PremiumWrapper())
         jsContext.SetParameter("Launcher", New LauncherWrapper())
 
-        jsContext.Run("alert = DotNet.alert;")
-        jsContext.Run("prompt = DotNet.prompt;")
+        jsContext.Run("alert = DotNet.alert;prompt = DotNet.prompt;")
     End Sub
     Public Shared Sub run(text As String)
         Threads.addScheduledTask("JavaScript-V8", $"mdzzqwq_{(New Random()).Next(1, 10001)}",
                                  Sub()
                                      Try
+                                         scriptStopwatch = New Stopwatch()
+                                         scriptStopwatch.Start()
                                          jsContext.Run(text)
+                                         scriptStopwatch.Stop()
+                                         ScriptPermMgr.endSession()
                                      Catch ex As Noesis.Javascript.JavascriptException
                                          MsgBox(ex.Message)
                                      End Try
+                                 End Sub)
+        Threads.addScheduledTask("JavaScript-V8-Helper", $"mdzzqwq_{(New Random()).Next(1, 10001)}",
+                                 Sub()
+                                     Dim hasRefused As Boolean = False
+                                     While scriptStopwatch IsNot Nothing AndAlso (scriptStopwatch.IsRunning Or tempPause)
+                                         If (Not hasRefused) AndAlso scriptStopwatch.ElapsedMilliseconds > tooLongPromptTime Then
+                                             If MsgBox(I18n.translate("warn.script.tooLong", CStr(tooLongPromptTime \ 1000)), vbYesNo, "JavaScript") = vbYes Then
+                                                 jsContext.TerminateExecution()
+                                                 scriptStopwatch.Stop()
+                                                 Exit Sub
+                                             Else
+                                                 hasRefused = True
+                                             End If
+                                         End If
+                                         If scriptStopwatch.ElapsedMilliseconds > immediateDeathTime Then
+                                             jsContext.TerminateExecution()
+                                             scriptStopwatch.Stop()
+                                             MsgBox(I18n.translate("err.script.forceDeath", CStr(immediateDeathTime \ 1000)), CType(vbCritical + vbOKOnly, MsgBoxStyle), "JavaScript")
+                                             Exit Sub
+                                         End If
+                                     End While
                                  End Sub)
         Return
         'Old code
@@ -219,10 +311,12 @@ Public NotInheritable Class ScriptServer
     End Sub
 
     Public Shared Sub readConfig()
-        scriptData = Newtonsoft.Json.JsonConvert.DeserializeObject(Of List(Of ScriptSaveData))(ConfigManager.ConfigValue.scriptData)
+        scriptData = Newtonsoft.Json.JsonConvert.DeserializeObject(Of Dictionary(Of String, String))(ConfigManager.ConfigValue.scriptData)
         If scriptData Is Nothing Then
-            scriptData = New List(Of ScriptSaveData)
+            scriptData = New Dictionary(Of String, String)
         End If
+        tooLongPromptTime = ConfigManager.ConfigValue.scriptTooLongTime
+        immediateDeathTime = ConfigManager.ConfigValue.scriptImmediateDeathTime
     End Sub
 
     Public Shared Sub updateConfig()

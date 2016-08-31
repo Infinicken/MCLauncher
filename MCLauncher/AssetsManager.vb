@@ -10,21 +10,11 @@ Public Class AssetsManager
             Directory.CreateDirectory(Path.GetFullPath(dir) + "\assets\objects")
         End If
         Dim dl As New FileDownload
-        dl.StartDownloadingAwait("https://s3.amazonaws.com/Minecraft.Download/indexes/" & ver & ".json", Path.GetFullPath(dir) + "\assets\indexes\" & ver & ".json")
-        Dim json As String = (New StreamReader(Path.GetFullPath(dir) & "\assets\indexes\" & ver & ".json")).ReadToEnd
+        Dim toFetch As String = DependencyLoader.getVersionJSONForVersion(dir, ver).assets
+        dl.StartDownloadingAwait("https://s3.amazonaws.com/Minecraft.Download/indexes/" & toFetch & ".json", Path.GetFullPath(dir) + "\assets\indexes\" & toFetch & ".json")
+        Dim json As String = (New StreamReader(Path.GetFullPath(dir) & "\assets\indexes\" & toFetch & ".json")).ReadToEnd
         Dim a As AssetsJson = JsonConvert.DeserializeObject(Of AssetsJson)(json)
         MsgBox(a.objects.Count)
-#If False Then
-        Dim count As Integer = 0
-        For Each item In a.objects
-            count += 1
-            dl = New FileDownload
-            If Not Directory.Exists(Path.GetFullPath(dir) & "\assets\objects\" & item.Value.hash.Substring(0, 2)) Then
-                Directory.CreateDirectory(Path.GetFullPath(dir) & "\assets\objects\" & item.Value.hash.Substring(0, 2))
-            End If
-            dl.StartDownloadingAwait("http://resources.download.minecraft.net/" & item.Value.hash.Substring(0, 2) & "/" & item.Value.hash, Path.GetFullPath(dir) & "\assets\objects\" & item.Value.hash.Substring(0, 2) & "\" & item.Value.hash, "下載中" & count & "/" & a.objects.Count)
-        Next
-#Else
         BatchDisplay.Show()
         For Each item In a.objects
             If Not Directory.Exists(Path.GetFullPath(dir) & "\assets\objects\" & item.Value.hash.Substring(0, 2)) Then
@@ -32,7 +22,6 @@ Public Class AssetsManager
             End If
             BatchFileDownload.addDownload(item.Value.hash, "http://resources.download.minecraft.net/" & item.Value.hash.Substring(0, 2) & "/" & item.Value.hash, Path.GetFullPath(dir) & "\assets\objects\" & item.Value.hash.Substring(0, 2) & "\" & item.Value.hash)
         Next
-#End If
         MsgBox(I18n.translate("info.assets.finish", ver))
     End Sub
 
@@ -41,6 +30,10 @@ Public Class AssetsManager
             Return
         End If
     End Sub
+
+    Public Shared Function getAssetIndexForVersion(dir As String, ver As String) As String
+        Return DependencyLoader.getVersionJSONForVersion(dir, ver).assets
+    End Function
 End Class
 
 Public Class AssetsJson

@@ -171,7 +171,21 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="PremiumVerifier.vb" />
+    <Compile Include="ScriptEditor.Designer.vb">
+      <DependentUpon>ScriptEditor.vb</DependentUpon>
+    </Compile>
+    <Compile Include="ScriptEditor.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ScriptPermMgr.vb" />
+    <Compile Include="ScriptPermReq.Designer.vb">
+      <DependentUpon>ScriptPermReq.vb</DependentUpon>
+    </Compile>
+    <Compile Include="ScriptPermReq.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="ScriptServer.vb" />
+    <Compile Include="SelfUpdate.vb" />
     <Compile Include="ServerSideManager.vb" />
     <Compile Include="Settings.Designer.vb">
       <DependentUpon>Settings.vb</DependentUpon>
@@ -206,6 +220,12 @@
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ScriptEditor.resx">
+      <DependentUpon>ScriptEditor.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ScriptPermReq.resx">
+      <DependentUpon>ScriptPermReq.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Settings.resx">
       <DependentUpon>Settings.vb</DependentUpon>

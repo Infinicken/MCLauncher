@@ -14,6 +14,9 @@ Public Class ConfigManager
         Public guid As String = ""
         Public cachedMods As String = ""
         Public scriptData As String = ""
+        Public scriptTooLongTime As Integer = 10000
+        Public scriptImmediateDeathTime As Integer = 30000
+        Public perms As String = ""
     End Class
     Public Shared ConfigValue As New ConfigValues
     Public Shared Sub writeToConfig()
@@ -45,6 +48,7 @@ ReadConfig:
         PremiumVerifier.updateConfig()
         ServerSideManager.updateConfig()
         ScriptServer.updateConfig()
+        ScriptPermMgr.updateConfig()
     End Sub
 
     Public Shared Sub notifyReadConfig()
@@ -52,5 +56,6 @@ ReadConfig:
         PremiumVerifier.readConfig()
         ServerSideManager.readConfig()
         ScriptServer.readConfig()
+        ScriptPermMgr.readConfig()
     End Sub
 End Class

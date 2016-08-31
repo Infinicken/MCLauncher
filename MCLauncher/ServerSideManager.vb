@@ -2,7 +2,6 @@
 Imports System.Net
 Imports Newtonsoft.Json.Linq
 
-<Obsolete("Fuck you. Fuck the world. Fuck everything.")>
 Public Class ServerSideManager
     Public Shared requestURL As String = "http://www.dfdfx.club"
     Public Shared launcherUpdateURL As String = "http://www.kongkongmao.club/mc/launcher"
@@ -23,6 +22,7 @@ Public Class ServerSideManager
     End Sub
 
     Public Shared Sub fetchFromServer()
+        Threads.addScheduledTask(threadName, "selfUpdateCheck", AddressOf SelfUpdate.checkUpdate)
         Threads.addScheduledTask(threadName, "fetch", AddressOf _fetchFromServer)
     End Sub
 
@@ -130,7 +130,7 @@ Public Class ServerSideManager
             Public mods As List(Of ModHolder)
         End Class
 
-        Public Class CustomLoginJSON
+        <Obsolete> Public Class CustomLoginJSON
             Public method As String
             Public url As String
             Public Class Argument
