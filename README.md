@@ -21,5 +21,6 @@ Dependencies required to compile:
 * a modified version of MaterialSkin
 * DotNetZip
 * Noesis.Javascript
+
 ## Server and JavaScript integration
 See [this page](http://kongkongmao.club/mc/launcher)
