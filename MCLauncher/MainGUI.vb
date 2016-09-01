@@ -72,7 +72,7 @@ Public Class MainGUI
     End Sub
 
     Private Sub UserLoginHook()
-        'PictureBox1.Image = PremiumVerifier.getPlayerHead(PremiumVerifier.Username)
+        PictureBox1.Image = PremiumVerifier.getPlayerHead(PremiumVerifier.Username)
         Label1.Text = PremiumVerifier.Username
     End Sub
 

@@ -1,15 +1,22 @@
 ﻿Imports System.Security.Cryptography
 
 Public Class BasicEncryption
-    Public Shared Function func_46293525_1_(_p_64909215_1_ As String, Optional _p_64909215_2_ As System.Text.Encoding = Nothing) As String
-        If _p_64909215_2_ Is Nothing Then
-            Return System.Convert.ToBase64String(Text.Encoding.UTF8.GetBytes(_p_64909215_1_))
+    Public Shared Function encodeBase64(str As String, Optional encoding As System.Text.Encoding = Nothing) As String
+        If encoding Is Nothing Then
+            Return System.Convert.ToBase64String(Text.Encoding.UTF8.GetBytes(str))
         End If
-        Return System.Convert.ToBase64String(_p_64909215_2_.GetBytes(_p_64909215_1_))
+        Return System.Convert.ToBase64String(encoding.GetBytes(str))
     End Function
 
-    Public Shared Function func_46293525_2_(_p_56094950_1_ As String) As String
-        Return Text.Encoding.UTF8.GetString(Convert.FromBase64String(_p_56094950_1_))
+    Public Shared Function decodeBase64(str As String, Optional encoding As System.Text.Encoding = Nothing) As String
+        Try
+            If encoding Is Nothing Then
+                Return Text.Encoding.UTF8.GetString(Convert.FromBase64String(str))
+            End If
+            Return encoding.GetString(Convert.FromBase64String(str))
+        Catch
+            Return str
+        End Try
     End Function
 
     Public Shared Function getMD5Checksum(filepath As String) As String

@@ -163,12 +163,12 @@ Public NotInheritable Class I18n
                         Dim keymappings As KeyMappings = getKeyMappings(raw)
                         If keymappings IsNot Nothing Then
                             keymappings.map.Add(map)
-                            Console.WriteLine("Added " & raw & " from " & langBelongto.getISOName & " to mappings!")
+                            'Console.WriteLine("Added " & raw & " from " & langBelongto.getISOName & " to mappings!")
                         Else
                             keymappings = New KeyMappings()
                             keymappings.map.Add(map)
                             I18n.map.Add(raw, keymappings)
-                            Console.WriteLine("Created mapping " & raw & " for " & langBelongto.getISOName & " since it wasn't there!")
+                            'Console.WriteLine("Created mapping " & raw & " for " & langBelongto.getISOName & " since it wasn't there!")
                         End If
                     End If
                 End While

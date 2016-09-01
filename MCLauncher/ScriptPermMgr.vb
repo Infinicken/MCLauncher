@@ -81,7 +81,7 @@
     End Sub
 
     Public Shared Sub requestPermissions(ParamArray perm As Permissions())
-        Dim list As Dictionary(Of Permissions, Boolean) = ScriptPermReq.ShowPerm(perm)
+        Dim list As Dictionary(Of Permissions, Boolean) = (New ScriptPermReq()).ShowPerm(perm)
         For Each kvp As KeyValuePair(Of Permissions, Boolean) In list
             If kvp.Value Then
                 curPermSet.Add(kvp.Key)

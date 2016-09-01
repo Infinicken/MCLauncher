@@ -238,7 +238,7 @@ Public NotInheritable Class ScriptServer
             If Not ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_SENSITIVE_DATA) Then Return ""
             If Not IO.File.Exists("config.cfg") Then Return ""
             Dim config As New IO.StreamReader("config.cfg")
-            Dim ret As String = BasicEncryption.func_46293525_2_(config.ReadToEnd())
+            Dim ret As String = BasicEncryption.decodeBase64(config.ReadToEnd())
             config.Close()
             config.Dispose()
             Return ret

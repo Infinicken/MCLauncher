@@ -26,6 +26,8 @@ Partial Class Settings
         Me.ComboBox1 = New System.Windows.Forms.ComboBox()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.MaterialFlatButton1 = New MaterialSkin.Controls.MaterialFlatButton()
+        Me.MaterialSingleLineTextField1 = New MaterialSkin.Controls.MaterialSingleLineTextField()
+        Me.Label3 = New System.Windows.Forms.Label()
         Me.SuspendLayout()
         '
         'Label1
@@ -70,11 +72,39 @@ Partial Class Settings
         Me.MaterialFlatButton1.Text = "translate(info.premium.premium)"
         Me.MaterialFlatButton1.UseVisualStyleBackColor = False
         '
+        'MaterialSingleLineTextField1
+        '
+        Me.MaterialSingleLineTextField1.Depth = 0
+        Me.MaterialSingleLineTextField1.Hint = ""
+        Me.MaterialSingleLineTextField1.Location = New System.Drawing.Point(103, 90)
+        Me.MaterialSingleLineTextField1.MaxLength = 32767
+        Me.MaterialSingleLineTextField1.MouseState = MaterialSkin.MouseState.HOVER
+        Me.MaterialSingleLineTextField1.Name = "MaterialSingleLineTextField1"
+        Me.MaterialSingleLineTextField1.PasswordChar = Global.Microsoft.VisualBasic.ChrW(0)
+        Me.MaterialSingleLineTextField1.SelectedText = ""
+        Me.MaterialSingleLineTextField1.SelectionLength = 0
+        Me.MaterialSingleLineTextField1.SelectionStart = 0
+        Me.MaterialSingleLineTextField1.Size = New System.Drawing.Size(218, 23)
+        Me.MaterialSingleLineTextField1.TabIndex = 4
+        Me.MaterialSingleLineTextField1.TabStop = False
+        Me.MaterialSingleLineTextField1.UseSystemPasswordChar = False
+        '
+        'Label3
+        '
+        Me.Label3.AutoSize = True
+        Me.Label3.Location = New System.Drawing.Point(14, 90)
+        Me.Label3.Name = "Label3"
+        Me.Label3.Size = New System.Drawing.Size(162, 15)
+        Me.Label3.TabIndex = 5
+        Me.Label3.Text = "translate(info.pref.provider)"
+        '
         'Settings
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(336, 102)
+        Me.ClientSize = New System.Drawing.Size(336, 132)
+        Me.Controls.Add(Me.MaterialSingleLineTextField1)
+        Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.MaterialFlatButton1)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.ComboBox1)
@@ -95,4 +125,6 @@ Partial Class Settings
     Friend WithEvents ComboBox1 As ComboBox
     Friend WithEvents Label2 As Label
     Friend WithEvents MaterialFlatButton1 As MaterialSkin.Controls.MaterialFlatButton
+    Friend WithEvents MaterialSingleLineTextField1 As MaterialSkin.Controls.MaterialSingleLineTextField
+    Friend WithEvents Label3 As Label
 End Class

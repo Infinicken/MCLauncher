@@ -36,6 +36,17 @@ Public Class ServerSideManager
         End If
     End Sub
 
+    Public Shared Sub validateAndUpdateProvider(text As String)
+        If isValidHTTP(BasicEncryption.decodeBase64(text)) Then
+            requestURL = BasicEncryption.decodeBase64(text)
+        End If
+    End Sub
+
+    Public Shared Function isValidHTTP(url As String) As Boolean
+        Dim _meh As Uri = Nothing
+        Return Uri.TryCreate(url, UriKind.Absolute, _meh) AndAlso (_meh.Scheme = Uri.UriSchemeHttp OrElse _meh.Scheme = Uri.UriSchemeHttps)
+    End Function
+
     Private Shared Sub _resolveModsJSON(obj As ServerJSONs.MainJSON, alt As String)
         Dim json As String = Post(If(obj.data.cdn, requestURL) & $"/api/mc/{obj.data.version}/mods.json", "", "", "GET")
         If json = "ERR" Then ToastRenderer.addToast(updateErrNotif) : Return

@@ -132,11 +132,13 @@ Public NotInheritable Class Toast
     Public Delegate Sub onClick(toast As Toast, e As MouseEventArgs)
     Public handler As onClick
     Public forcedDismiss As Boolean = False
-    Public Sub New(title As String, content As String, Optional icon As Bitmap = Nothing, Optional autoDismiss As Boolean = True, Optional longToast As ToastLength = ToastLength.Normal, Optional onClick As onClick = Nothing)
+    Public Sub New(title As String, content As String, Optional icon As Bitmap = Nothing, Optional autoDismiss As Boolean = True, Optional longToast As ToastLength = ToastLength.Normal, Optional onClick As onClick = Nothing, Optional backColor As Color? = Nothing, Optional foreColor As Color? = Nothing)
         Me.title = title
         Me.content = content
         Me.icon = icon
         Me.autoDismiss = autoDismiss
+        Me.backColor = If(backColor, Color.Gray)
+        Me.foreColor = If(foreColor, Color.Black)
         maxLife = longToast
         handler = onClick
     End Sub

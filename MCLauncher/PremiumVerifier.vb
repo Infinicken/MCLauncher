@@ -177,7 +177,7 @@ Public Class PremiumVerifier
             IO.Directory.CreateDirectory(Application.StartupPath & "\cache")
         End If
         Dim dlg As New FileDownload
-        dlg.StartDownloadingAwait("https://minotar.net/avatar/" & username, Application.StartupPath & "\cache\" & username & ".png")
+        dlg.StartDownloadingAwait("https://minotar.net/avatar/" & username, Application.StartupPath & "\cache\" & username & ".png", "AWAIT_TRANSLATE", True)
         Return CType(Image.FromFile(Application.StartupPath & "\cache\" & username & ".png"), Bitmap)
     End Function
 

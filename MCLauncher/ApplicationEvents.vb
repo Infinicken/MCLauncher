@@ -10,8 +10,10 @@
             Logger.log("Application is shutting down!", Logger.LogLevel.INFO)
             ConfigManager.writeToConfig()
             Logger.stop()
+            ConfigManager.releaseSessionLock()
         End Sub
         Protected Sub boot() Handles Me.Startup
+            ConfigManager.createSessionLock()
             Logger.log("Application is booting up!", Logger.LogLevel.INFO)
             I18n.loadTranslationsFromFileIntoMappings()
             ConfigManager.readFromConfig()
@@ -27,7 +29,7 @@
             errFile.AppendLine(String.Format("System Architecture: {0}", If(Not Environment.Is64BitOperatingSystem, "x86", "x64")))
             Dim premIsVerify As Boolean = PremiumVerifier.getAccessTokenValid(PremiumVerifier.AccessToken, PremiumVerifier.ClientToken, False)
             errFile.AppendLine(String.Format("Is Premium: {0}, {1}", PremiumVerifier.VerifyType.ToString, premIsVerify.ToString))
-            If premIsVerify Then errFile.AppendLine(String.Format("Premium Verification Info: {0}", BasicEncryption.func_46293525_1_(PremiumVerifier.getUserInfo())))
+            If premIsVerify Then errFile.AppendLine(String.Format("Premium Verification Info: {0}", BasicEncryption.encodeBase64(PremiumVerifier.getUserInfo())))
             errFile.Append("==== END OF CRASH REPORT ====")
             Dim crashFilePath As String = "crash_" & String.Format("{0}_{1}_{2}_{3}_{4}_{5}", Now.Year, Now.Month, Now.Day, Now.Hour, Now.Minute, Now.Second) & ".txt"
             Dim crashFile As New IO.StreamWriter(crashFilePath, False, Text.Encoding.UTF8)
@@ -37,7 +39,7 @@
             MsgBox("Application crashed! See " & crashFilePath & " for crash report.")
             Logger.log("Application crashed!", Logger.LogLevel.FATAL)
             Logger.log(errFile.ToString, Logger.LogLevel.FATAL)
-            Logger.stop()
+            onclose()
         End Sub
     End Class
 End Namespace

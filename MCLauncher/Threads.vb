@@ -37,7 +37,7 @@ Public NotInheritable Class Threads
                                                             End While
                                                         End Sub) With {.IsBackground = True, .Name = $"THREAD-{identifier}", .Priority = ThreadPriority.BelowNormal}) = False Then Throw New Exception()
             threadPool(identifier).Start()
-            Console.WriteLine($"Created thread {identifier}!")
+            'Console.WriteLine($"Created thread {identifier}!")
         Catch ex As Exception
             Console.WriteLine($"Failed to create thread {identifier}!")
         Finally
@@ -63,7 +63,7 @@ Public NotInheritable Class Threads
                             taskPool.TryAdd(identifier, New List(Of Runnable))
                             taskPool(identifier).Add(New Runnable(name, [delegate]))
                         End If
-                        Console.WriteLine($"Scheduled task for {identifier}!")
+                        'Console.WriteLine($"Scheduled task for {identifier}!")
                     End If
                 Catch ex As ArgumentException
                     Console.WriteLine($"Failed to schedule task for {identifier}!")
@@ -81,7 +81,7 @@ Public NotInheritable Class Threads
     Public Shared Sub killAllThread()
         For Each t As KeyValuePair(Of String, Thread) In threadPool
             t.Value.Abort()
-            Console.WriteLine($"Killed thread {t.Value} in pool!")
+            'Console.WriteLine($"Killed thread {t.Value} in pool!")
         Next
         threadPool.Clear()
         taskPool.Clear()
@@ -95,7 +95,7 @@ Public NotInheritable Class Threads
         If threadPool.ContainsKey(identifier) Then
             threadPool(identifier).Abort()
             threadPool.TryRemove(identifier, Nothing)
-            Console.WriteLine($"The thread {identifier} is now terminated!")
+            'Console.WriteLine($"The thread {identifier} is now terminated!")
         End If
     End Sub
 

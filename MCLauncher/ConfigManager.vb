@@ -2,6 +2,9 @@
 Imports Newtonsoft.Json
 
 Public Class ConfigManager
+
+    Public Shared HiThere As String = """Oh, it's you. I will say, though, that since you went to all the trouble of waking me up, you must really, really love to test. I love it too. There's just one small thing we need to take care of first."" --GLaDOS, Portal 2 (2011)"
+
     Public Class ConfigValues
         Public accessToken As String = "0"
         Public clientToken As String = "0"
@@ -23,24 +26,38 @@ Public Class ConfigManager
         requestUpdateConfig()
         Dim json As String = JsonConvert.SerializeObject(ConfigValue)
         Dim config As New StreamWriter("config.cfg")
-        config.Write(BasicEncryption.func_46293525_1_(json))
+        config.Write(BasicEncryption.encodeBase64(json))
         config.Flush()
         config.Close()
         config.Dispose()
     End Sub
 
     Public Shared Sub readFromConfig()
-        If Not File.Exists("config.cfg") Then GoTo ReadConfig
-        Dim config As New StreamReader("config.cfg")
-        Dim json As ConfigValues = JsonConvert.DeserializeObject(Of ConfigValues)(BasicEncryption.func_46293525_2_(config.ReadToEnd))
-        config.Close()
-        config.Dispose()
-        ConfigValue = json
+        Try
+            If Not File.Exists("config.cfg") Then GoTo ReadConfig
+            Dim config As New StreamReader("config.cfg")
+            Dim json As ConfigValues = JsonConvert.DeserializeObject(Of ConfigValues)(BasicEncryption.decodeBase64(config.ReadToEnd))
+            config.Close()
+            config.Dispose()
+            ConfigValue = json
 ReadConfig:
-        If ConfigValue Is Nothing Then
+            If ConfigValue Is Nothing Then
+                ConfigValue = New ConfigValues
+            End If
+            If File.Exists("automate.cfg") Then
+                Dim automation As New StreamReader("automate.cfg")
+                Dim automatedRslt As ConfigValues = JsonConvert.DeserializeObject(Of ConfigValues)(BasicEncryption.decodeBase64(automation.ReadToEnd))
+                automation.Close()
+                automation.Dispose()
+                ConfigValue = automatedRslt
+                File.Delete("automate.cfg")
+                MsgBox(I18n.translate("info.config.automated"))
+            End If
+            notifyReadConfig()
+        Catch
+            MsgBox(I18n.translate("err.config"))
             ConfigValue = New ConfigValues
-        End If
-        notifyReadConfig()
+        End Try
     End Sub
 
     Public Shared Sub requestUpdateConfig()
@@ -57,5 +74,20 @@ ReadConfig:
         ServerSideManager.readConfig()
         ScriptServer.readConfig()
         ScriptPermMgr.readConfig()
+    End Sub
+
+    Public Shared Sub releaseSessionLock()
+        File.Delete("session.lock")
+    End Sub
+
+    Public Shared Sub createSessionLock()
+        If File.Exists("session.lock") Then
+            MsgBox("Application was terminated abnormally. Configs were not saved and logs were not packed.")
+        Else
+            Dim session As New StreamWriter("session.lock")
+            session.Write("")
+            session.Close()
+            session.Dispose()
+        End If
     End Sub
 End Class

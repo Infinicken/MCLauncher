@@ -12,16 +12,16 @@ Public Class FileDownload
         MyBase.Show()
     End Sub
     Private WithEvents wc As New WebClient
-    Public Sub StartDownloading(fileToDownload As String, saveTo As String, Optional ticker As String = "AWAIT_TRANSLATE")
-        MyBase.Show()
+    Public Sub StartDownloading(fileToDownload As String, saveTo As String, Optional ticker As String = "AWAIT_TRANSLATE", Optional cantSeeShitCaptain As Boolean = False)
+        If Not cantSeeShitCaptain Then MyBase.Show()
         If ticker = "AWAIT_TRANSLATE" Then ticker = I18n.translate("info.download.async", fileToDownload)
         labelStat.Text = String.Format(ticker, fileToDownload)
         wc.DownloadFileAsync(New Uri(fileToDownload), IO.Path.GetFullPath(saveTo))
         done = False
     End Sub
 
-    Public Sub StartDownloadingAwait(fileToDownload As String, saveTo As String, Optional ticker As String = "AWAIT_TRANSLATE")
-        MyBase.Show()
+    Public Sub StartDownloadingAwait(fileToDownload As String, saveTo As String, Optional ticker As String = "AWAIT_TRANSLATE", Optional cantSeeShitCaptain As Boolean = False)
+        If Not cantSeeShitCaptain Then MyBase.Show()
         If ticker = "AWAIT_TRANSLATE" Then ticker = I18n.translate("info.download.sync", fileToDownload)
         labelStat.Text = String.Format(ticker, fileToDownload)
         wc.DownloadFileAsync(New Uri(fileToDownload), IO.Path.GetFullPath(saveTo))
