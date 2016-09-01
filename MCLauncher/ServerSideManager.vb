@@ -102,10 +102,12 @@ Public Class ServerSideManager
 
         Public Class MainJSON
             Public Class VersionJSON
+				Public news_page As String
                 Public version As String
                 Public mcVer As String
                 Public forgeVer As String
                 Public cdn As String
+				Public customlogin As String
             End Class
             Public data As VersionJSON
         End Class

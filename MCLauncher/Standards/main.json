@@ -4,15 +4,7 @@
 	"data":{	
 		"news_page" : "http://kongkongmao.club/mc",
 		"mods" : "http://kongkongmao.club/mc/mods.json",
-		"customlogin" : "true",
-		"customloginapi" : "http://kongkongmao.club/mc/customlogin.json",
-		"customresc" : {
-			{
-			 "url":"http://df.mokeyjay.com/{0}",
-			 "action":["find_nest:data",
-			 "enter_arr:data[]","var:temp",
-			 "setvar[temp]:json_eval[uuid]"]
-			}
-		}
+		"customlogin" : "http://kongkongmao.club/mc/customlogin.js",
+		"cdn" : "http://df.mokeyjay.com/"
 	}
 }
