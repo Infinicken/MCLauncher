@@ -42,6 +42,7 @@
     Private Shared persist As Boolean = False
     Private Shared curScript As Guid? = Nothing
     Private Shared curPermSet As List(Of Permissions)
+    Private Shared requestCount As Integer = 0
     Public Shared ReadOnly Property currentPermissionSet As ObjectModel.ReadOnlyCollection(Of Permissions)
         Get
             Return curPermSet.AsReadOnly()
@@ -52,6 +53,7 @@
         curScript = Guid.NewGuid()
         registeredScripts.Add(curScript.ToString(), New List(Of Permissions))
         curPermSet = registeredScripts(curScript.ToString())
+        requestCount = 0
     End Sub
 
     Public Shared Sub endSession()
@@ -61,6 +63,9 @@
             End If
         End If
         persist = False
+        curScript = Nothing
+        curPermSet = Nothing
+        requestCount = 0
     End Sub
 
     Public Shared Function getCurrentGuid() As Guid?
@@ -81,12 +86,14 @@
     End Sub
 
     Public Shared Sub requestPermissions(ParamArray perm As Permissions())
+        If requestCount > 3 Then Return
         Dim list As Dictionary(Of Permissions, Boolean) = (New ScriptPermReq()).ShowPerm(perm)
         For Each kvp As KeyValuePair(Of Permissions, Boolean) In list
             If kvp.Value Then
                 curPermSet.Add(kvp.Key)
             End If
         Next
+        requestCount += 1
     End Sub
 
     Public Shared Function resumeSession(guid As String) As Boolean
@@ -97,11 +104,9 @@
                 curPermSet = registeredScripts(out.ToString)
                 persist = True
             Else
-                MsgBox("Not found. Try creating a new session.")
                 Return False
             End If
         Else
-            MsgBox("Unable to parse GUID.")
             Return False
         End If
         Return True

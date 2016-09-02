@@ -1,5 +1,5 @@
 ﻿Public Class Settings
-    Public Shared settingsUpdated As New Toast(I18n.translate("info.pref.updatedToast.title"), I18n.translate("info.pref.updatedToast.content"), Nothing, True, Toast.ToastLength.Short, Nothing, Color.Green, Nothing)
+    Private settingsUpdated As New Toast(I18n.translate("info.pref.updatedToast.title"), I18n.translate("info.pref.updatedToast.content"), Nothing, True, Toast.ToastLength.Short, Nothing, Color.Green, Nothing)
     Private Sub Settings_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ComboBox1.Items.Clear()
 
@@ -25,7 +25,7 @@
     End Sub
 
     Private Sub Settings_FormClosed(sender As Object, e As FormClosedEventArgs) Handles Me.FormClosed
-        ToastRenderer.addToast(settingsUpdated)
+        ToastRenderer.addToast(settingsUpdated.clone())
     End Sub
 
     Private Sub MaterialSingleLineTextField1_TextChanged(sender As Object, e As EventArgs) Handles MaterialSingleLineTextField1.TextChanged

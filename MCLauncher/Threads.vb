@@ -11,8 +11,8 @@ Public NotInheritable Class Threads
     Protected Shared taskPool As New ConcurrentDictionary(Of String, List(Of Runnable))
     Public Delegate Sub RunnableSub()
     Public Class Runnable
-        Public runnable As RunnableSub
-        Public name As String
+        Public ReadOnly runnable As RunnableSub
+        Public ReadOnly name As String
         Public Sub New(name As String, runnable As RunnableSub)
             Me.name = name
             Me.runnable = runnable

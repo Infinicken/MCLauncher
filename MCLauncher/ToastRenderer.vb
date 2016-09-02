@@ -94,7 +94,9 @@ Public NotInheritable Class ToastRenderer
     ''' </summary>
     ''' <param name="toast">The toast to add to.</param>
     Public Shared Sub addToast(toast As Toast)
-        toasts.Add(toast)
+        If toasts.Count < Short.MaxValue Then
+            toasts.Add(toast)
+        End If
     End Sub
     ''' <summary>
     ''' Checks if there are any queued toasts.
@@ -143,8 +145,12 @@ Public NotInheritable Class Toast
         handler = onClick
     End Sub
     Public Enum ToastLength
+        NotYourOrdinaryToast = 250
         [Short] = 500
         Normal = 1000
         [Long] = 1500
     End Enum
+    Public Function clone() As Toast
+        Return New Toast(title, content, icon, autoDismiss, CType(maxLife, ToastLength), handler, backColor, foreColor)
+    End Function
 End Class

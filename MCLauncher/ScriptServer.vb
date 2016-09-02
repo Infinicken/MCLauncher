@@ -62,18 +62,31 @@ Public NotInheritable Class ScriptServer
             End If
         End Function
         Public Sub alert(prompt As String)
-            MsgBox(prompt)
+            If scriptAnnoyances < Short.MaxValue Then
+                MsgBox(prompt)
+                scriptAnnoyances += CShort(1)
+            End If
         End Sub
         Public Function prompt(p As String) As String
-            Return InputBox(p)
+            If scriptAnnoyances < Short.MaxValue Then
+                Return InputBox(p)
+                scriptAnnoyances += CShort(1)
+            End If
+            Return ""
         End Function
     End Class
     Public Class ConsoleWrapper
         Public Sub log(t As Object)
-            Logger.log(CStr(t), Logger.LogLevel.INFO)
+            If scriptAnnoyances < Short.MaxValue Then
+                Logger.log(CStr(t), Logger.LogLevel.INFO)
+                scriptAnnoyances += CShort(1)
+            End If
         End Sub
         Public Sub logDebug(t As Object)
-            Debug.WriteLine(CStr(t))
+            If scriptAnnoyances < Short.MaxValue Then
+                Debug.WriteLine(CStr(t))
+                scriptAnnoyances += CShort(1)
+            End If
         End Sub
     End Class
     Public Class MojangAPIWrapper
@@ -83,20 +96,12 @@ Public NotInheritable Class ScriptServer
         Public Sub refresh(accessToken As String)
             PremiumVerifier.refreshAccessToken(accessToken, PremiumVerifier.ClientToken, False)
         End Sub
-        Public Function getInfo() As String
+        Public Function getUserInfo() As String
             If ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_SENSITIVE_DATA) Then
                 Return PremiumVerifier.getUserInfo()
             End If
             Return ""
         End Function
-        Public ReadOnly Property accessToken As String
-            Get
-                If ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_SENSITIVE_DATA) Then
-                    Return PremiumVerifier.AccessToken
-                End If
-                Return ""
-            End Get
-        End Property
     End Class
     Public Class PremiumWrapper
         Public ReadOnly Property accessToken As String
@@ -144,7 +149,10 @@ Public NotInheritable Class ScriptServer
                 Return BasicEncryption.getMD5Checksum(path)
             End Function
             Public Sub fetch()
-                ServerSideManager.fetchFromServer()
+                If scriptAnnoyances < Short.MaxValue Then
+                    ServerSideManager.fetchFromServer()
+                    scriptAnnoyances += CShort(1)
+                End If
             End Sub
             Public Function send(url As String, method As String, payload As String) As String
                 If ScriptPermMgr.hasPermission(ScriptPermMgr.Permissions.PERMISSION_INTERNET_ACCESS) Then
@@ -156,7 +164,10 @@ Public NotInheritable Class ScriptServer
         Public ReadOnly Property server As New ServerWrapper()
         Public Class ToastWrapper
             Public Sub add(title As String, text As String)
-                ToastRenderer.addToast(New Toast(title, text))
+                If scriptAnnoyances < Short.MaxValue Then
+                    ToastRenderer.addToast(New Toast(title, text, Nothing, True, MCLauncher.Toast.ToastLength.NotYourOrdinaryToast))
+                    scriptAnnoyances += CShort(1)
+                End If
             End Sub
         End Class
         Public ReadOnly Property toast As New ToastWrapper()
@@ -203,9 +214,9 @@ Public NotInheritable Class ScriptServer
             Public Sub create()
                 ScriptPermMgr.newSession()
             End Sub
-            Public Sub loadPerm(identifier As String)
-                ScriptPermMgr.resumeSession(identifier)
-            End Sub
+            Public Function loadPerm(identifier As String) As Boolean
+                Return ScriptPermMgr.resumeSession(identifier)
+            End Function
             Public Sub request(ParamArray p As ScriptPermMgr.Permissions())
                 tempPause = True
                 scriptStopwatch.Stop()
@@ -251,6 +262,7 @@ Public NotInheritable Class ScriptServer
     Public Shared jsContext As New Noesis.Javascript.JavascriptContext
     Public Shared scriptData As New Dictionary(Of String, String)
     Private Shared scriptStopwatch As Stopwatch
+    Private Shared scriptAnnoyances As Short = 0
     Private Shared tempPause As Boolean = False
     Private Shared tooLongPromptTime As Integer
     Private Shared immediateDeathTime As Integer
@@ -272,6 +284,7 @@ Public NotInheritable Class ScriptServer
         Threads.addScheduledTask("JavaScript-V8", $"mdzzqwq_{(New Random()).Next(1, 10001)}",
                                  Sub()
                                      Try
+                                         scriptAnnoyances = 0
                                          scriptStopwatch = New Stopwatch()
                                          scriptStopwatch.Start()
                                          jsContext.Run(text)
@@ -279,6 +292,9 @@ Public NotInheritable Class ScriptServer
                                          ScriptPermMgr.endSession()
                                      Catch ex As Noesis.Javascript.JavascriptException
                                          MsgBox(ex.Message)
+                                     Catch ex As AccessViolationException
+                                         MsgBox(ex.Message, CType(vbCritical Or vbOKOnly, MsgBoxStyle), "Critical error")
+                                         End
                                      End Try
                                  End Sub)
         Threads.addScheduledTask("JavaScript-V8-Helper", $"mdzzqwq_{(New Random()).Next(1, 10001)}",
