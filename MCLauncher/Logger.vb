@@ -9,8 +9,6 @@ Public NotInheritable Class Logger
         fileLog = New IO.StreamWriter(filePath, False, Text.Encoding.UTF8) With {.AutoFlush = True}
     End Sub
     Private Shared sb As New Text.StringBuilder
-    Private Shared tenline As New Text.StringBuilder
-    Private Shared tenlinecount As Integer = 0
     Private Shared fileLog As IO.StreamWriter
     Private Shared filePath As String
     Private Shared isStreamClosed As Boolean
@@ -29,23 +27,15 @@ Public NotInheritable Class Logger
                            $"Trying to log: [{level.ToString}]{msg}")
             Return
         End If
-        Threads.Mutex.WaitOne()
+        ThreadWrapper.Mutex.WaitOne()
         SyncLock fileLog
-            SyncLock tenline
-                Dim frmStr As String = $"[{Now.ToLocalTime}][{level.ToString}][{Threading.Thread.CurrentThread.Name}] {msg}"
-                sb.AppendLine(frmStr)
-                fileLog.WriteLine(frmStr)
-                fileLog.Flush()
-                tenline.AppendLine(frmStr)
-                tenlinecount += 1
-                If tenlinecount = 10 Then
-                    Debug.WriteLine(tenline.ToString)
-                    tenline = New Text.StringBuilder
-                    tenlinecount = 0
-                End If
-            End SyncLock
+            Dim frmStr As String = $"[{Now.ToLocalTime}][{level.ToString}][{Threading.Thread.CurrentThread.Name}] {msg}"
+            sb.AppendLine(frmStr)
+            fileLog.WriteLine(frmStr)
+            fileLog.Flush()
+            Debug.WriteLine(frmStr.Replace(vbCrLf, "").Replace(vbLf, "").Replace(vbCr, ""))
         End SyncLock
-        Threads.Mutex.ReleaseMutex()
+        ThreadWrapper.Mutex.ReleaseMutex()
     End Sub
     Public Shared Sub [stop]()
         If Not isStreamClosed Then

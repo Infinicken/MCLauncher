@@ -31,4 +31,8 @@
     Private Sub MaterialSingleLineTextField1_TextChanged(sender As Object, e As EventArgs) Handles MaterialSingleLineTextField1.TextChanged
         ServerSideManager.validateAndUpdateProvider(MaterialSingleLineTextField1.Text)
     End Sub
+
+    Private Sub MaterialCheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles MaterialCheckBox1.CheckedChanged
+        ServerSideManager.shittySpec = MaterialCheckBox1.Checked
+    End Sub
 End Class

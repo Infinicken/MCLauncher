@@ -1,10 +1,11 @@
 {
 	"result":"success",
 	"code":200,
-	"data":{	
+	"data":{
+		"comments_@url" : "NEVER EVER ADD A BACKSLASH AFTER AN URL!",
 		"news_page" : "http://kongkongmao.club/mc",
 		"mods" : "http://kongkongmao.club/mc/mods.json",
 		"customlogin" : "http://kongkongmao.club/mc/customlogin.js",
-		"cdn" : "http://df.mokeyjay.com/"
+		"cdn" : "http://df.mokeyjay.com"
 	}
 }

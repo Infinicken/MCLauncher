@@ -28,6 +28,8 @@ Partial Class Settings
         Me.MaterialFlatButton1 = New MaterialSkin.Controls.MaterialFlatButton()
         Me.MaterialSingleLineTextField1 = New MaterialSkin.Controls.MaterialSingleLineTextField()
         Me.Label3 = New System.Windows.Forms.Label()
+        Me.MaterialCheckBox1 = New MaterialSkin.Controls.MaterialCheckBox()
+        Me.Label4 = New System.Windows.Forms.Label()
         Me.SuspendLayout()
         '
         'Label1
@@ -98,11 +100,38 @@ Partial Class Settings
         Me.Label3.TabIndex = 5
         Me.Label3.Text = "translate(info.pref.provider)"
         '
+        'MaterialCheckBox1
+        '
+        Me.MaterialCheckBox1.AutoSize = True
+        Me.MaterialCheckBox1.Depth = 0
+        Me.MaterialCheckBox1.Font = New System.Drawing.Font("Microsoft JhengHei UI", 9.0!)
+        Me.MaterialCheckBox1.Location = New System.Drawing.Point(103, 116)
+        Me.MaterialCheckBox1.Margin = New System.Windows.Forms.Padding(0)
+        Me.MaterialCheckBox1.MouseLocation = New System.Drawing.Point(-1, -1)
+        Me.MaterialCheckBox1.MouseState = MaterialSkin.MouseState.HOVER
+        Me.MaterialCheckBox1.Name = "MaterialCheckBox1"
+        Me.MaterialCheckBox1.Ripple = True
+        Me.MaterialCheckBox1.Size = New System.Drawing.Size(240, 30)
+        Me.MaterialCheckBox1.TabIndex = 6
+        Me.MaterialCheckBox1.Text = "translate(info.pref.shittyPCCheck)"
+        Me.MaterialCheckBox1.UseVisualStyleBackColor = True
+        '
+        'Label4
+        '
+        Me.Label4.AutoSize = True
+        Me.Label4.Location = New System.Drawing.Point(14, 123)
+        Me.Label4.Name = "Label4"
+        Me.Label4.Size = New System.Drawing.Size(158, 15)
+        Me.Label4.TabIndex = 7
+        Me.Label4.Text = "translate(info.pref.shittyPC)"
+        '
         'Settings
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(336, 132)
+        Me.ClientSize = New System.Drawing.Size(336, 152)
+        Me.Controls.Add(Me.MaterialCheckBox1)
+        Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.MaterialSingleLineTextField1)
         Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.MaterialFlatButton1)
@@ -127,4 +156,6 @@ Partial Class Settings
     Friend WithEvents MaterialFlatButton1 As MaterialSkin.Controls.MaterialFlatButton
     Friend WithEvents MaterialSingleLineTextField1 As MaterialSkin.Controls.MaterialSingleLineTextField
     Friend WithEvents Label3 As Label
+    Friend WithEvents MaterialCheckBox1 As MaterialSkin.Controls.MaterialCheckBox
+    Friend WithEvents Label4 As Label
 End Class

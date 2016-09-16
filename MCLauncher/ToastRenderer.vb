@@ -48,7 +48,7 @@ Public NotInheritable Class ToastRenderer
         If toast.icon IsNot Nothing Then g.DrawImage(toast.icon, dRect.X, dRect.Y, 32, 32)
         g.DrawString(toast.title, New Font(font, FontStyle.Bold), New SolidBrush(toast.foreColor), dRect.X + 36, dRect.Y + 2)
         g.DrawString(toast.content, font, New SolidBrush(toast.foreColor), dRect.X + 36, dRect.Y + 18)
-        If toast.autoDismiss Then g.DrawString((toast.maxLife - toast.life) \ 100 & "s" & vbCrLf & "(+" & toasts.Count - 1 & ")", font, New SolidBrush(toast.foreColor), dRect.X, dRect.Y + 36)
+        g.DrawString(If(toast.autoDismiss, (toast.maxLife - toast.life) \ 100 & "s" & vbCrLf, "") & "(+" & toasts.Count - 1 & ")", font, New SolidBrush(toast.foreColor), dRect.X, dRect.Y + 36)
         If toast.life < animationModifier OrElse toast.autoDismiss Then
             toast.life += 2
         End If
@@ -86,6 +86,7 @@ Public NotInheritable Class ToastRenderer
                 toast.handler.Invoke(toast, e)
             Else
                 toast.life = CInt(toast.maxLife * 0.875)
+                toast.forcedDismiss = True
             End If
         End If
     End Sub

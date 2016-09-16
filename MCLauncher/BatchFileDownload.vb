@@ -10,9 +10,9 @@
     End Property
     Public Shared ReadOnly Property totalToDownload As Integer
         Get
-            Threads.Mutex.WaitOne()
+            ThreadWrapper.Mutex.WaitOne()
             Dim ret As Integer = dlQueue.Count
-            Threads.Mutex.ReleaseMutex()
+            ThreadWrapper.Mutex.ReleaseMutex()
             Return ret
         End Get
     End Property
@@ -62,26 +62,26 @@
         progress.Remove(threadname)
         curDLCount -= 1
         redelegateDownloadMission()
-        Threads.killThread(threadname)
+        ThreadWrapper.killThread(threadname)
     End Sub
 
     Private Shared Sub redelegateDownloadMission()
-        Threads.Mutex.WaitOne()
+        ThreadWrapper.Mutex.WaitOne()
         SyncLock dlQueue
             If curDLCount < MaxDownload Then
                 If dlQueue.Count > 0 Then
                     Dim toDL As QueueDL = dlQueue(0)
                     curDLCount += 1
-                    Threads.createThread("dl_" & toDL.name)
-                    If Threads.hasThread("dl_" & toDL.name) AndAlso Not progress.ContainsKey("dl_" & toDL.name) Then progress.Add("dl_" & toDL.name, 0)
-                    Threads.addScheduledTask("dl_" & toDL.name, toDL.name, Sub()
-                                                                               downloadFile(toDL.fileUrl, toDL.filePath)
-                                                                           End Sub)
+                    ThreadWrapper.createThread("dl_" & toDL.name)
+                    If ThreadWrapper.hasThread("dl_" & toDL.name) AndAlso Not progress.ContainsKey("dl_" & toDL.name) Then progress.Add("dl_" & toDL.name, 0)
+                    ThreadWrapper.addScheduledTask("dl_" & toDL.name, toDL.name, Sub()
+                                                                                     downloadFile(toDL.fileUrl, toDL.filePath)
+                                                                                 End Sub)
                     dlQueue.RemoveAt(0)
                 End If
             End If
         End SyncLock
-        Threads.Mutex.ReleaseMutex()
+        ThreadWrapper.Mutex.ReleaseMutex()
         RaiseEvent ProgressChanged()
     End Sub
 End Class

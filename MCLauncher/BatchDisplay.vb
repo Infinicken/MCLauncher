@@ -8,7 +8,7 @@
     End Sub
 
     Private Function listAll() As String
-        Threads.Mutex.WaitOne()
+        ThreadWrapper.Mutex.WaitOne()
         SyncLock BatchFileDownload.progress
             Dim Str As New Text.StringBuilder
             Str.AppendLine(I18n.translate("info.download.batch.ticker", CStr(BatchFileDownload.currentDownload), CStr(BatchFileDownload.MaxDownload), CStr(BatchFileDownload.totalToDownload)))
@@ -17,10 +17,10 @@
                     Str.AppendLine($"{If(item.Key.Length > 10, item.Key.Remove(10) & "...", item.Key)} {calculateProgressIndicator(item.Value)} ({item.Value})")
                 Next
             Catch ex As InvalidOperationException
-                Threads.Mutex.ReleaseMutex()
+                ThreadWrapper.Mutex.ReleaseMutex()
                 Return Str.ToString
             End Try
-            Threads.Mutex.ReleaseMutex()
+            ThreadWrapper.Mutex.ReleaseMutex()
             Return Str.ToString
         End SyncLock
     End Function

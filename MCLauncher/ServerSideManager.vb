@@ -15,20 +15,21 @@ Public Class ServerSideManager
                                               I18n.translate("err.network"), Nothing, True, Toast.ToastLength.Long) With {.backColor = Color.Red}
     Public Const appID As String = "2FCE29CF-6FC7-4975-B93C-860C738A6496"
     Public Shared cachedMods As New List(Of MCMod)
+    Public Shared shittySpec As Boolean = False
     Private Const threadName As String = "serverSideManager"
 
     Shared Sub New()
-        Threads.createThread(threadName)
+        ThreadWrapper.createThread(threadName)
     End Sub
 
     Public Shared Sub fetchFromServer()
-        Threads.addScheduledTask(threadName, "selfUpdateCheck", AddressOf SelfUpdate.checkUpdate)
-        Threads.addScheduledTask(threadName, "fetch", AddressOf _fetchFromServer)
+        ThreadWrapper.addScheduledTask(threadName, "selfUpdateCheck", AddressOf SelfUpdate.checkUpdate)
+        ThreadWrapper.addScheduledTask(threadName, "fetch", AddressOf _fetchFromServer)
     End Sub
 
     Private Shared Sub _fetchFromServer()
         Dim json As String = Post(requestURL & "/api/mc/getVersion", "", "", "GET")
-        If json = "ERR" Then ToastRenderer.addToast(updateErrNotif) : Return
+        If json = "" Then ToastRenderer.addToast(updateErrNotif) : Return
         Dim obj As ServerJSONs.MainJSON = JsonConvert.DeserializeObject(Of ServerJSONs.MainJSON)(json)
         If obj.data.version <> curMdpVer Then
             ToastRenderer.addToast(needUpdateNotif)
@@ -48,10 +49,14 @@ Public Class ServerSideManager
     End Function
 
     Private Shared Sub _resolveModsJSON(obj As ServerJSONs.MainJSON, alt As String)
-        Dim json As String = Post(If(obj.data.cdn, requestURL) & $"/api/mc/{obj.data.version}/mods.json", "", "", "GET")
+        Dim json As String = Post(If(obj?.data?.cdn, requestURL) & $"/api/mc/{obj.data.version}/mods.json", "", "", "GET")
         If json = "ERR" Then ToastRenderer.addToast(updateErrNotif) : Return
         Dim mods As ServerJSONs.ModsJSON = JsonConvert.DeserializeObject(Of ServerJSONs.ModsJSON)(json)
-
+        For Each m As ServerJSONs.ModsJSON.ModHolder In mods.mods
+            BatchFileDownload.addDownload(m.md5, $"{If(obj?.data?.cdn, requestURL)}/api/mc/mods/{m.url}", m.filename)
+            cachedMods.Add(CType(m, MCMod))
+        Next
+        Call New BatchDisplay().Show()
     End Sub
 
     Public Shared Sub updateConfig()
@@ -59,6 +64,7 @@ Public Class ServerSideManager
         ConfigManager.ConfigValue.curMdpVer = curMdpVer
         ConfigManager.ConfigValue.guid = guid
         ConfigManager.ConfigValue.cachedMods = JsonConvert.SerializeObject(cachedMods)
+        ConfigManager.ConfigValue.shittySpec = shittySpec
     End Sub
 
     Public Shared Sub readConfig()
@@ -68,6 +74,7 @@ Public Class ServerSideManager
         If guid = "" Then
             guid = System.Guid.NewGuid.ToString
         End If
+        shittySpec = ConfigManager.ConfigValue.shittySpec
     End Sub
 
     Public Shared Function Post(url As String, payload As String, contentType As String, method As String) As String
@@ -91,7 +98,7 @@ Public Class ServerSideManager
         Catch e As WebException
             Logger.log(e.Message, Logger.LogLevel.ERR)
             Logger.log(New IO.StreamReader(e.Response.GetResponseStream).ReadToEnd, Logger.LogLevel.ERR)
-            Return "ERR"
+            Return ""
         End Try
     End Function
 
@@ -128,6 +135,7 @@ Public Class ServerSideManager
             Public Class ModHolder
                 Public modid As String
                 Public display As String
+                Public url As String
                 Public filename As String
                 Public md5 As String
                 Public Enum ModType
@@ -139,6 +147,12 @@ Public Class ServerSideManager
                 Public Function getModType() As ModType
                     Return If(type.ToLower = "core", ModType.Core, If(type.ToLower = "optimization", ModType.Optimization, ModType.Optional))
                 End Function
+                Public Class ConfigHolder
+                    Public url As String
+                    Public local As String
+                End Class
+                Public cfg As List(Of ConfigHolder)
+                Public categories As List(Of String)
             End Class
             Public mods As List(Of ModHolder)
         End Class
@@ -174,6 +188,10 @@ Public Class ServerSideManager
         Public modid As String
         Public display As String
         Public type As ServerJSONs.ModsJSON.ModHolder.ModType
+        Public path As String
+        Public Shared Narrowing Operator CType(modholder As ServerJSONs.ModsJSON.ModHolder) As MCMod
+            Return New MCMod() With {.modid = modholder.modid, .display = modholder.display, .type = modholder.getModType(), .path = modholder.filename}
+        End Operator
     End Class
 
     Public Shared Sub downloadModsFromProvider(ver As String, dir As String)

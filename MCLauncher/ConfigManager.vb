@@ -16,6 +16,7 @@ Public Class ConfigManager
         Public curMdpVer As String = "none"
         Public guid As String = ""
         Public cachedMods As String = ""
+        Public shittySpec As Boolean = False
         Public scriptData As String = ""
         Public scriptTooLongTime As Integer = 10000
         Public scriptImmediateDeathTime As Integer = 30000
@@ -25,30 +26,28 @@ Public Class ConfigManager
     Public Shared Sub writeToConfig()
         requestUpdateConfig()
         Dim json As String = JsonConvert.SerializeObject(ConfigValue)
-        Dim config As New StreamWriter("config.cfg")
-        config.Write(BasicEncryption.encodeBase64(json))
-        config.Flush()
-        config.Close()
-        config.Dispose()
+        Using config As New StreamWriter("config.cfg")
+            config.Write(BasicEncryption.encodeBase64(json))
+        End Using
     End Sub
 
     Public Shared Sub readFromConfig()
         Try
             If Not File.Exists("config.cfg") Then GoTo ReadConfig
-            Dim config As New StreamReader("config.cfg")
-            Dim json As ConfigValues = JsonConvert.DeserializeObject(Of ConfigValues)(BasicEncryption.decodeBase64(config.ReadToEnd))
-            config.Close()
-            config.Dispose()
+            Dim json As ConfigValues = Nothing
+            Using config As New StreamReader("config.cfg")
+                json = JsonConvert.DeserializeObject(Of ConfigValues)(BasicEncryption.decodeBase64(config.ReadToEnd))
+            End Using
             ConfigValue = json
 ReadConfig:
             If ConfigValue Is Nothing Then
                 ConfigValue = New ConfigValues
             End If
             If File.Exists("automate.cfg") Then
-                Dim automation As New StreamReader("automate.cfg")
-                Dim automatedRslt As ConfigValues = JsonConvert.DeserializeObject(Of ConfigValues)(BasicEncryption.decodeBase64(automation.ReadToEnd))
-                automation.Close()
-                automation.Dispose()
+                Dim automatedRslt As ConfigValues = Nothing
+                Using automation As New StreamReader("automate.cfg")
+                    automatedRslt = JsonConvert.DeserializeObject(Of ConfigValues)(BasicEncryption.decodeBase64(automation.ReadToEnd))
+                End Using
                 ConfigValue = automatedRslt
                 File.Delete("automate.cfg")
                 MsgBox(I18n.translate("info.config.automated"))
@@ -82,12 +81,11 @@ ReadConfig:
 
     Public Shared Sub createSessionLock()
         If File.Exists("session.lock") Then
-            MsgBox("Application was terminated abnormally. Configs were not saved and logs were not packed.")
+            MsgBox("Application was terminated abnormally, or another instance of the application is running.")
         Else
-            Dim session As New StreamWriter("session.lock")
-            session.Write("")
-            session.Close()
-            session.Dispose()
+            Using session As New StreamWriter("session.lock")
+                session.Write("")
+            End Using
         End If
     End Sub
 End Class

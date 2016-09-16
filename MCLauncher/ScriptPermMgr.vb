@@ -86,7 +86,7 @@
     End Sub
 
     Public Shared Sub requestPermissions(ParamArray perm As Permissions())
-        If requestCount > 3 Then Return
+        If requestCount > 2 Then Return
         Dim list As Dictionary(Of Permissions, Boolean) = (New ScriptPermReq()).ShowPerm(perm)
         For Each kvp As KeyValuePair(Of Permissions, Boolean) In list
             If kvp.Value Then

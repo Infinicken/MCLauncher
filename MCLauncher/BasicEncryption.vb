@@ -3,9 +3,9 @@
 Public Class BasicEncryption
     Public Shared Function encodeBase64(str As String, Optional encoding As System.Text.Encoding = Nothing) As String
         If encoding Is Nothing Then
-            Return System.Convert.ToBase64String(Text.Encoding.UTF8.GetBytes(str))
+            Return Convert.ToBase64String(Text.Encoding.UTF8.GetBytes(str))
         End If
-        Return System.Convert.ToBase64String(encoding.GetBytes(str))
+        Return Convert.ToBase64String(encoding.GetBytes(str))
     End Function
 
     Public Shared Function decodeBase64(str As String, Optional encoding As System.Text.Encoding = Nothing) As String
