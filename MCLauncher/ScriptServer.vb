@@ -1,4 +1,5 @@
 ﻿Option Strict On
+Imports System.Linq
 
 Public NotInheritable Class ScriptServer
 #Region ".NET Wrapper Classes"
@@ -216,6 +217,69 @@ Public NotInheritable Class ScriptServer
         Public Sub flushConfig()
             ConfigManager.writeToConfig()
         End Sub
+        Public Sub help()
+            Call New DotNetCodeWrapper().alert("Try help_module with different submodules(DotNet, console, MojangAPI, Premium, Launcher)." & vbCrLf &
+                                               "There are also methods for different props, like help_method, help_field, and help_prop." & vbCrLf &
+            "These methods are for .NET classes, not JavaScript primitive classes or JavaScript classes.")
+        End Sub
+        Public Sub help_module(o As Object)
+            Dim sb As New Text.StringBuilder
+            sb.AppendLine("Methods: (To get more details, use Launcher.help_method(object to inspect, method name) instead)")
+            Array.ForEach(o.GetType.GetMethods, Sub(inf As Reflection.MethodInfo)
+                                                    If Not inf.DeclaringType = o.GetType OrElse Not inf.Name.IndexOf("get_") = -1 OrElse Not inf.Name.IndexOf("set_") = -1 Then Return
+                                                    sb.AppendLine($"{inf.ReturnType.FullName} {inf.Name}({Strings.Join(inf.GetParameters.Select(Function(param As Reflection.ParameterInfo) As String
+                                                                                                                                                    Return $"{param.ParameterType.FullName} {param.Name}{If(Not String.IsNullOrWhiteSpace(param.DefaultValue.ToString()), " = " & param.DefaultValue.ToString(), "")}"
+                                                                                                                                                End Function).ToArray, ", ")})")
+                                                End Sub)
+            sb.AppendLine(vbCrLf & "Fields: (To get more details, use Launcher.help_field(object to inspect, field name) instead)")
+            Array.ForEach(o.GetType.GetFields, Sub(inf As Reflection.FieldInfo)
+                                                   sb.AppendLine($"{inf.FieldType.FullName} {inf.Name}")
+                                               End Sub)
+            sb.AppendLine(vbCrLf & "Properties: (To get more details, use Launcher.help_prop(object to inspect, field name) instead)")
+            Array.ForEach(o.GetType.GetProperties, Sub(inf As Reflection.PropertyInfo)
+                                                       sb.AppendLine($"{inf.PropertyType.FullName} {inf.Name}(canread={inf.CanRead},canwrite={inf.CanWrite})")
+                                                   End Sub)
+            MsgBox(sb.ToString)
+        End Sub
+        Public Sub help_method(o As Object, m As String)
+            Dim sb As New Text.StringBuilder
+            For Each inf As Reflection.MethodInfo In o.GetType.GetMethods()
+                If inf.Name = m Then
+                    sb.AppendLine("Method name: " & inf.Name)
+                    sb.AppendLine("Method params: " & $"({Strings.Join(inf.GetParameters.Select(Function(param As Reflection.ParameterInfo) As String
+                                                                                                    Return $"{param.ParameterType.FullName} {param.Name}{If(Not String.IsNullOrWhiteSpace(param.DefaultValue.ToString()), " = " & param.DefaultValue.ToString(), "")}"
+                                                                                                End Function).ToArray, ", ")})")
+                    sb.AppendLine("Method return type: " & inf.ReturnType.FullName)
+                    sb.AppendLine("Method CIL: " & Strings.Join(inf.GetMethodBody.GetILAsByteArray.Select(Function(b As Byte) As String
+                                                                                                              Return b.ToString
+                                                                                                          End Function).ToArray(), ","))
+                End If
+            Next
+            MsgBox(sb.ToString())
+        End Sub
+        Public Sub help_field(o As Object, f As String)
+            Dim sb As New Text.StringBuilder
+            For Each inf As Reflection.FieldInfo In o.GetType.GetFields()
+                If inf.Name = f Then
+                    sb.AppendLine("Field name: " & inf.Name)
+                    sb.AppendLine("Field type: " & inf.FieldType.FullName)
+                    sb.AppendLine("Field value:" & inf.GetValue(o).ToString())
+                End If
+            Next
+            MsgBox(sb.ToString)
+        End Sub
+        Public Sub help_prop(o As Object, p As String)
+            Dim sb As New Text.StringBuilder
+            For Each inf As Reflection.PropertyInfo In o.GetType.GetProperties()
+                If inf.Name = p Then
+                    sb.AppendLine("Field name: " & inf.Name)
+                    sb.AppendLine("Field type: " & inf.PropertyType.FullName)
+                    sb.AppendLine("Field status: " & $"canread={inf.CanRead},canwrite={inf.CanWrite}")
+                    If inf.CanRead Then sb.AppendLine("Field value: " & inf.GetGetMethod().Invoke(o, {}).ToString())
+                End If
+            Next
+            MsgBox(sb.ToString)
+        End Sub
     End Class
 #End Region
     Public Shared jsContext As Noesis.Javascript.JavascriptContext
@@ -238,7 +302,7 @@ Public NotInheritable Class ScriptServer
         jsContext.SetParameter("Premium", New PremiumWrapper())
         jsContext.SetParameter("Launcher", New LauncherWrapper())
 
-        jsContext.Run("alert = DotNet.alert;prompt = DotNet.prompt;")
+        jsContext.Run("alert=DotNet.alert;prompt=DotNet.prompt;help=Launcher.help;help_module=Launcher.help_module")
     End Sub
     Public Shared Sub run(text As String)
         ThreadWrapper.addScheduledTask("JavaScript-V8", $"mdzzqwq_{(New Random()).Next(1, 10001)}",
