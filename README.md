@@ -18,10 +18,10 @@ It also has integrated JavaScript support.
 ## Dependencies
 Dependencies required to compile:
 * Newtonsoft.Json
-* a modified version of MaterialSkin
+* [a modified version of MaterialSkin] (https://github.com/jacky8399/MaterialSkin-fork)
 * DotNetZip
 * Noesis.Javascript
-* 0u0Lib
+* [0u0Lib] (https://github.com/jacky8399/0u0Lib)
 
 ## Server and JavaScript integration
 See [this page](http://kongkongmao.club/mc/launcher)
