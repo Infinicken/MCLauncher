@@ -78,6 +78,7 @@ Public Class ServerSideManager
     End Sub
 
     Public Shared Function Post(url As String, payload As String, contentType As String, method As String) As String
+        Logger.log($"Creating connection to {url}...", Logger.LogLevel.INFO)
         Dim req As HttpWebRequest = CType(HttpWebRequest.Create(url), HttpWebRequest)
         If method = "GET" Then req.Accept = "*/*"
         If method <> "GET" Then
@@ -97,7 +98,11 @@ Public Class ServerSideManager
             Return ret
         Catch e As WebException
             Logger.log(e.Message, Logger.LogLevel.ERR)
-            Logger.log(New IO.StreamReader(e.Response.GetResponseStream).ReadToEnd, Logger.LogLevel.ERR)
+            If e.Response IsNot Nothing Then
+                Logger.log(New IO.StreamReader(e.Response.GetResponseStream).ReadToEnd, Logger.LogLevel.ERR)
+            Else
+                Logger.log("The server didn't respond with data.", Logger.LogLevel.ERR)
+            End If
             Return ""
         End Try
     End Function

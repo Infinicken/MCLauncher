@@ -1,5 +1,4 @@
 ﻿Option Strict On
-Imports System.Linq
 
 Public NotInheritable Class ScriptServer
 #Region ".NET Wrapper Classes"
@@ -224,21 +223,22 @@ Public NotInheritable Class ScriptServer
         End Sub
         Public Sub help_module(o As Object)
             Dim sb As New Text.StringBuilder
+            sb.AppendLine("Object qualified name: " & o.GetType.FullName)
             sb.AppendLine("Methods: (To get more details, use Launcher.help_method(object to inspect, method name) instead)")
-            Array.ForEach(o.GetType.GetMethods, Sub(inf As Reflection.MethodInfo)
-                                                    If Not inf.DeclaringType = o.GetType OrElse Not inf.Name.IndexOf("get_") = -1 OrElse Not inf.Name.IndexOf("set_") = -1 Then Return
-                                                    sb.AppendLine($"{inf.ReturnType.FullName} {inf.Name}({Strings.Join(inf.GetParameters.Select(Function(param As Reflection.ParameterInfo) As String
-                                                                                                                                                    Return $"{param.ParameterType.FullName} {param.Name}{If(Not String.IsNullOrWhiteSpace(param.DefaultValue.ToString()), " = " & param.DefaultValue.ToString(), "")}"
-                                                                                                                                                End Function).ToArray, ", ")})")
-                                                End Sub)
+            o.GetType.GetMethods.forEach(Sub(inf As Reflection.MethodInfo)
+                                             If Not inf.DeclaringType = o.GetType OrElse Not inf.Name.IndexOf("get_") = -1 OrElse Not inf.Name.IndexOf("set_") = -1 Then Return
+                                             sb.AppendLine($"{If(inf.ReturnType = GetType(System.Void), "void", inf.ReturnType.FullName)} {inf.Name}({Strings.Join(inf.GetParameters.map(Function(param As Reflection.ParameterInfo) As String
+                                                                                                                                                                                             Return $"{param.ParameterType.FullName} {param.Name}{If(Not String.IsNullOrWhiteSpace(param.DefaultValue.ToString()), " = " & param.DefaultValue.ToString(), "")}"
+                                                                                                                                                                                         End Function).array(), ", ").map(Function(str As String) Not str.Length < 2, Function(str As String) str.right(2), Function(str As String) str)})")
+                                         End Sub)
             sb.AppendLine(vbCrLf & "Fields: (To get more details, use Launcher.help_field(object to inspect, field name) instead)")
-            Array.ForEach(o.GetType.GetFields, Sub(inf As Reflection.FieldInfo)
-                                                   sb.AppendLine($"{inf.FieldType.FullName} {inf.Name}")
-                                               End Sub)
+            o.GetType.GetFields.forEach(Sub(inf As Reflection.FieldInfo)
+                                            sb.AppendLine($"{inf.FieldType.FullName} {inf.Name}")
+                                        End Sub)
             sb.AppendLine(vbCrLf & "Properties: (To get more details, use Launcher.help_prop(object to inspect, field name) instead)")
-            Array.ForEach(o.GetType.GetProperties, Sub(inf As Reflection.PropertyInfo)
-                                                       sb.AppendLine($"{inf.PropertyType.FullName} {inf.Name}(canread={inf.CanRead},canwrite={inf.CanWrite})")
-                                                   End Sub)
+            o.GetType.GetProperties.forEach(Sub(inf As Reflection.PropertyInfo)
+                                                sb.AppendLine($"{inf.PropertyType.FullName} {inf.Name}(canread={inf.CanRead},canwrite={inf.CanWrite})")
+                                            End Sub)
             MsgBox(sb.ToString)
         End Sub
         Public Sub help_method(o As Object, m As String)
@@ -246,13 +246,13 @@ Public NotInheritable Class ScriptServer
             For Each inf As Reflection.MethodInfo In o.GetType.GetMethods()
                 If inf.Name = m Then
                     sb.AppendLine("Method name: " & inf.Name)
-                    sb.AppendLine("Method params: " & $"({Strings.Join(inf.GetParameters.Select(Function(param As Reflection.ParameterInfo) As String
-                                                                                                    Return $"{param.ParameterType.FullName} {param.Name}{If(Not String.IsNullOrWhiteSpace(param.DefaultValue.ToString()), " = " & param.DefaultValue.ToString(), "")}"
-                                                                                                End Function).ToArray, ", ")})")
-                    sb.AppendLine("Method return type: " & inf.ReturnType.FullName)
-                    sb.AppendLine("Method CIL: " & Strings.Join(inf.GetMethodBody.GetILAsByteArray.Select(Function(b As Byte) As String
-                                                                                                              Return b.ToString
-                                                                                                          End Function).ToArray(), ","))
+                    sb.AppendLine("Method params: " & $"({Strings.Join(inf.GetParameters.map(Function(param As Reflection.ParameterInfo) As String
+                                                                                                 Return $"{param.ParameterType.FullName} {param.Name}{If(Not String.IsNullOrWhiteSpace(param.DefaultValue.ToString()), " = " & param.DefaultValue.ToString(), "")}"
+                                                                                             End Function).array(), ", ").right(2)})")
+                    sb.AppendLine("Method return type: " & If(inf.ReturnType = GetType(System.Void), "void", inf.ReturnType.FullName))
+                    sb.AppendLine("Method CIL: " & Strings.Join(inf.GetMethodBody.GetILAsByteArray.map(Function(b As Byte) As String
+                                                                                                           Return b.ToString
+                                                                                                       End Function).array(), ","))
                 End If
             Next
             MsgBox(sb.ToString())
@@ -302,7 +302,7 @@ Public NotInheritable Class ScriptServer
         jsContext.SetParameter("Premium", New PremiumWrapper())
         jsContext.SetParameter("Launcher", New LauncherWrapper())
 
-        jsContext.Run("alert=DotNet.alert;prompt=DotNet.prompt;help=Launcher.help;help_module=Launcher.help_module")
+        jsContext.Run("alert=DotNet.alert;prompt=DotNet.prompt;help=Launcher.help;help_module=Launcher.help_module;help_method=Launcher.help_method;help_field=Launcher.help_field;help_prop=Launcher.help_prop;")
     End Sub
     Public Shared Sub run(text As String)
         ThreadWrapper.addScheduledTask("JavaScript-V8", $"mdzzqwq_{(New Random()).Next(1, 10001)}",
@@ -316,6 +316,8 @@ Public NotInheritable Class ScriptServer
                                          ScriptPermMgr.endSession()
                                      Catch ex As Noesis.Javascript.JavascriptException
                                          MsgBox(ex.Message)
+                                         scriptStopwatch.Stop()
+                                         ScriptPermMgr.endSession()
                                      Catch ex As AccessViolationException
                                          MsgBox(ex.Message, vbCritical Or vbOKOnly, "Critical error")
                                          End
