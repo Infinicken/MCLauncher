@@ -1,7 +1,7 @@
 ﻿Public Class ScriptEditor
     Private Shared registeredHighlight As New List(Of KeywordHighlight)
     Public Shared prettyFont As New Font("Microsoft YaHei", 10)
-    Public Class KeywordHighlight
+    Public NotInheritable Class KeywordHighlight
         Private Sub New(a As String, b As Color, c As Font)
             key = a
             color = b
@@ -20,8 +20,27 @@
             instance = Nothing
         End Sub
     End Class
+    Private Shared registeredTooltip As New List(Of KeywordTooltip)
+    Public NotInheritable Class KeywordTooltip
+        Private Sub New(k As String, t As String)
+            key = k
+            tooltip = t
+        End Sub
+        Public ReadOnly key As String
+        Public ReadOnly tooltip As String
+        Public Shared Function create(key As String, tool As String) As KeywordTooltip
+            Dim instance As KeywordTooltip = New KeywordTooltip(key, tool)
+            registeredTooltip.Add(instance)
+            Return instance
+        End Function
+        Public Shared Sub remove(ByRef instance As KeywordTooltip)
+            registeredTooltip.Remove(instance)
+            instance = Nothing
+        End Sub
+    End Class
 
     Shared Sub New()
+        'Create KeywordHighlights
         KeywordHighlight.create("alert", Color.Blue, prettyFont)
         KeywordHighlight.create("prompt", Color.Blue, prettyFont)
         KeywordHighlight.create("eval", Color.Blue, New Font(prettyFont, FontStyle.Bold))
@@ -34,6 +53,11 @@
         KeywordHighlight.create("if", Color.Blue, prettyFont)
         KeywordHighlight.create("new", Color.Blue, prettyFont)
         KeywordHighlight.create("this", Color.Blue, prettyFont)
+        'Create KeywordTooltips
+        KeywordTooltip.create("Launcher", "Launcher wrapper")
+        KeywordTooltip.create("alert", "function alert(val)")
+        KeywordTooltip.create("prompt", "string prompt(prompt)")
+        KeywordTooltip.create("eval", "/* Language construct */ function eval(...)")
     End Sub
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
@@ -51,11 +75,11 @@
         RichTextBox1.SelectAll()
         RichTextBox1.SelectionColor = Color.Black
         RichTextBox1.SelectionFont = RichTextBox1.Font
-        StringHighlight()
-        ClassCheck()
         For Each item As KeywordHighlight In registeredHighlight
             SH(item.key, item.color, item.font)
         Next
+        ClassCheck()
+        StringHighlight()
         RichTextBox1.SelectionStart = sel
         RichTextBox1.SelectionLength = sell
         RichTextBox1.Show()
@@ -127,5 +151,27 @@ SearchForMatchingQuotationMark:
         SetStyle(ControlStyles.UserPaint, True)
         SetStyle(ControlStyles.AllPaintingInWmPaint, True)
         SetStyle(ControlStyles.OptimizedDoubleBuffer, True)
+    End Sub
+
+    Private Sub RichTextBox1_MouseMove(sender As Object, e As MouseEventArgs) Handles RichTextBox1.MouseMove
+        Dim chrInd As Integer = RichTextBox1.GetCharIndexFromPosition(e.Location)
+        Dim line As Integer = RichTextBox1.GetLineFromCharIndex(chrInd)
+        If line = 0 AndAlso RichTextBox1.Lines.Length = 0 Then Return
+        Dim firstChrInd As Integer = RichTextBox1.GetFirstCharIndexFromLine(line)
+        Dim lineStr As String = RichTextBox1.Lines(line)
+        Dim maxMapper As Func(Of Integer, Integer) = Function(a As Integer) If(a = -1, -1, a)
+        Dim minMapper As Func(Of Integer, Integer) = Function(a As Integer) If(a = -1, lineStr.Length - 1, a)
+        Dim lineFirstSpace As Integer = Math.Max(RichTextBox1.Text.LastIndexOf(" ", chrInd).map(maxMapper), RichTextBox1.Text.LastIndexOf(".", chrInd).map(maxMapper))
+        Dim lineLastSpace As Integer = Math.Min(Math.Min(RichTextBox1.Text.IndexOf(" ", chrInd).map(minMapper), RichTextBox1.Text.IndexOf(".", chrInd).map(minMapper)), RichTextBox1.Text.IndexOf("(", chrInd).map(minMapper))
+        If lineLastSpace = -1 Then lineLastSpace = lineStr.Length - 1
+        If lineLastSpace - lineFirstSpace < 0 Then Return
+        Dim pozhenStr As String = RichTextBox1.Text.Substring(lineFirstSpace + 1, lineLastSpace - lineFirstSpace).Trim().map(Function(a As String) If(a Like "*." OrElse a Like "*(", a.right(1), a))
+        For Each item As KeywordTooltip In registeredTooltip
+            If item.key = pozhenStr Then
+                If Not ToolTipKeyword.Active Then ToolTipKeyword.Show(item.tooltip, Me, e.Location, 2500)
+                Exit Sub
+            End If
+        Next
+        LabelTest.Text = pozhenStr
     End Sub
 End Class

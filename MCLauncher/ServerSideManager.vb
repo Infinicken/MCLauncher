@@ -78,7 +78,7 @@ Public Class ServerSideManager
     End Sub
 
     Public Shared Function Post(url As String, payload As String, contentType As String, method As String) As String
-        Logger.log($"Creating connection to {url}...", Logger.LogLevel.INFO)
+        Logger.log($"Connecting to {url}", Logger.LogLevel.INFO)
         Dim req As HttpWebRequest = CType(HttpWebRequest.Create(url), HttpWebRequest)
         If method = "GET" Then req.Accept = "*/*"
         If method <> "GET" Then

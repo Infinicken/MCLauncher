@@ -196,6 +196,23 @@ Public NotInheritable Class ScriptServer
             End Function
         End Class
         Public ReadOnly Property perm As New PermissionWrapper()
+        Public Class CodeEditorWrapper
+            Public Sub registerHighlight(str As String, r As Byte, g As Byte, b As Byte)
+                ScriptEditor.KeywordHighlight.create(str, Color.FromArgb(r, g, b), ScriptEditor.prettyFont)
+            End Sub
+            Public Sub registerTooltip(str As String, tooltip As String)
+                ScriptEditor.KeywordTooltip.create(str, tooltip)
+            End Sub
+            Public Property guiLabel As String
+                Get
+                    Return ScriptEditor.LabelTest.Text
+                End Get
+                Set(value As String)
+                    ScriptEditor.LabelTest.Text = value
+                End Set
+            End Property
+        End Class
+        Public ReadOnly Property CodeEditorAPI As New CodeEditorWrapper()
         Public Sub test()
             MsgBox(String.Format("{0}", "Too many args", "123"))
             MsgBox(String.Format("{0},{1}", "Insufficient args"))

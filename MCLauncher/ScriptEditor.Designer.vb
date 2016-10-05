@@ -22,8 +22,11 @@ Partial Class ScriptEditor
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.components = New System.ComponentModel.Container()
         Me.RichTextBox1 = New System.Windows.Forms.RichTextBox()
         Me.Button1 = New System.Windows.Forms.Button()
+        Me.ToolTipKeyword = New System.Windows.Forms.ToolTip(Me.components)
+        Me.LabelTest = New System.Windows.Forms.Label()
         Me.SuspendLayout()
         '
         'RichTextBox1
@@ -37,6 +40,7 @@ Partial Class ScriptEditor
         Me.RichTextBox1.Size = New System.Drawing.Size(436, 336)
         Me.RichTextBox1.TabIndex = 0
         Me.RichTextBox1.Text = ""
+        Me.RichTextBox1.WordWrap = False
         '
         'Button1
         '
@@ -48,11 +52,20 @@ Partial Class ScriptEditor
         Me.Button1.Text = "Run"
         Me.Button1.UseVisualStyleBackColor = True
         '
+        'LabelTest
+        '
+        Me.LabelTest.AutoSize = True
+        Me.LabelTest.Location = New System.Drawing.Point(12, 359)
+        Me.LabelTest.Name = "LabelTest"
+        Me.LabelTest.Size = New System.Drawing.Size(0, 12)
+        Me.LabelTest.TabIndex = 2
+        '
         'ScriptEditor
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(460, 389)
+        Me.Controls.Add(Me.LabelTest)
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.RichTextBox1)
         Me.DoubleBuffered = True
@@ -60,9 +73,12 @@ Partial Class ScriptEditor
         Me.ShowIcon = False
         Me.Text = "ScriptEditor"
         Me.ResumeLayout(False)
+        Me.PerformLayout()
 
     End Sub
 
     Friend WithEvents RichTextBox1 As RichTextBox
     Friend WithEvents Button1 As Button
+    Friend WithEvents ToolTipKeyword As ToolTip
+    Friend WithEvents LabelTest As Label
 End Class
