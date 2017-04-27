@@ -14,6 +14,7 @@
         End Sub
         Protected Sub boot() Handles Me.Startup
             ConfigManager.createSessionLock()
+            Threading.Thread.CurrentThread.Name = "Thread-MAIN"
             Logger.log("Application is booting up!", Logger.LogLevel.INFO)
             I18n.loadTranslationsFromFileIntoMappings()
             ConfigManager.readFromConfig()
@@ -29,6 +30,7 @@
             errFile.AppendLine(String.Format("System Architecture: {0}", If(Not Environment.Is64BitOperatingSystem, "x86", "x64")))
             Dim premIsVerify As Boolean = PremiumVerifier.getAccessTokenValid(PremiumVerifier.AccessToken, PremiumVerifier.ClientToken, False)
             errFile.AppendLine(String.Format("Is Premium: {0}, {1}", PremiumVerifier.VerifyType.ToString, premIsVerify.ToString))
+            errFile.AppendLine(String.Format("Ingame Username: {0}", PremiumVerifier.Username))
             If premIsVerify Then errFile.AppendLine(String.Format("Premium Verification Info: {0}", BasicEncryption.encodeBase64(PremiumVerifier.getUserInfo())))
             errFile.Append("==== END OF CRASH REPORT ====")
             Dim crashFilePath As String = "crash_" & String.Format("{0}_{1}_{2}_{3}_{4}_{5}", Now.Year, Now.Month, Now.Day, Now.Hour, Now.Minute, Now.Second) & ".txt"

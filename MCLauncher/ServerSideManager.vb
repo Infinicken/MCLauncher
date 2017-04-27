@@ -2,7 +2,7 @@
 Imports System.Net
 Imports Newtonsoft.Json.Linq
 
-Public Class ServerSideManager
+Public NotInheritable Class ServerSideManager
     Public Shared requestURL As String = "http://www.dfdfx.club"
     Public Shared launcherUpdateURL As String = "http://www.kongkongmao.club/mc/launcher"
     Public Shared guid As String = ""
@@ -17,6 +17,9 @@ Public Class ServerSideManager
     Public Shared cachedMods As New List(Of MCMod)
     Public Shared shittySpec As Boolean = False
     Private Const threadName As String = "serverSideManager"
+
+    Private Sub New()
+    End Sub
 
     Shared Sub New()
         ThreadWrapper.createThread(threadName)
@@ -114,12 +117,12 @@ Public Class ServerSideManager
 
         Public Class MainJSON
             Public Class VersionJSON
-				Public news_page As String
+                Public news_page As String
                 Public version As String
                 Public mcVer As String
                 Public forgeVer As String
                 Public cdn As String
-				Public customlogin As String
+                Public customlogin As String
             End Class
             Public data As VersionJSON
         End Class

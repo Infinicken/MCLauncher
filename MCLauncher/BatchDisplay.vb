@@ -1,39 +1,50 @@
 ﻿Public Class BatchDisplay
     Private Sub BatchDisplay_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        TextBox1.Text = listAll()
+        listAll()
         Control.CheckForIllegalCrossThreadCalls = False
         AddHandler BatchFileDownload.ProgressChanged, Sub()
-                                                          TextBox1.Text = listAll()
+                                                          listAll()
                                                       End Sub
     End Sub
+    Declare Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hWnd As Integer,
+                                                                ByVal wMsg As Integer,
+                                                                ByVal wParam As Integer,
+                                                                ByVal lParam As Integer) As Integer
+    Private displayWait As Integer = 0
 
-    Private Function listAll() As String
-        ThreadWrapper.Mutex.WaitOne()
-        SyncLock BatchFileDownload.progress
-            Dim Str As New Text.StringBuilder
-            Str.AppendLine(I18n.translate("info.download.batch.ticker", CStr(BatchFileDownload.currentDownload), CStr(BatchFileDownload.MaxDownload), CStr(BatchFileDownload.totalToDownload)))
-            Try
-                For Each item As KeyValuePair(Of String, Integer) In BatchFileDownload.progress
-                    Str.AppendLine($"{If(item.Key.Length > 10, item.Key.Remove(10) & "...", item.Key)} {calculateProgressIndicator(item.Value)} ({item.Value})")
-                Next
-            Catch ex As InvalidOperationException
-                ThreadWrapper.Mutex.ReleaseMutex()
-                Return Str.ToString
-            End Try
-            ThreadWrapper.Mutex.ReleaseMutex()
-            Return Str.ToString
-        End SyncLock
-    End Function
-
-    Private Function calculateProgressIndicator(prog As Integer) As String
-        Dim str As String = "["
-        For i As Integer = 0 To prog \ 10
-            If i > 0 Then str += ">"
-        Next
-        For i As Integer = 0 To 10 - prog \ 10
-            If i > 0 Then str += "-"
-        Next
-        str += "]"
-        Return str
-    End Function
+    Private Sub listAll()
+        Try
+            If displayWait <> 0 Then
+                displayWait -= 1
+                Return
+            End If
+            Invoke(Sub()
+                       Try
+                           'Disable render
+                           SendMessage(CInt(tlp.Handle), 11, 0, 0)
+                           tlp.Controls.Clear()
+                           tlp.RowCount = 0
+                           tlp.ColumnStyles.Clear()
+                           tlp.RowStyles.Clear()
+                           tlp.ColumnCount = 2
+                           tlp.ColumnStyles.Add(New ColumnStyle(SizeType.AutoSize))
+                           tlp.ColumnStyles.Add(New ColumnStyle(SizeType.AutoSize))
+                           ThreadWrapper.Mutex.WaitOne()
+                           Dim sbThread = New Dictionary(Of String, Integer)(BatchFileDownload.progress)
+                           ThreadWrapper.Mutex.ReleaseMutex()
+                           For Each item In sbThread
+                               tlp.Controls.Add(New Label With {.Text = item.Key}, 0, tlp.RowCount)
+                               tlp.Controls.Add(New ProgressBar With {.Value = item.Value}, 1, tlp.RowCount)
+                               tlp.RowCount += 1
+                           Next
+                           SendMessage(CInt(tlp.Handle), 11, 1, 0)
+                           tlp.Refresh()
+                       Catch
+                       End Try
+                   End Sub
+                )
+            displayWait = 3
+        Catch
+        End Try
+    End Sub
 End Class

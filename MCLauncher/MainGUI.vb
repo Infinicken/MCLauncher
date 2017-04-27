@@ -4,6 +4,8 @@ Public Class MainGUI
     Public Shared piratedNotification As New Toast(I18n.translate("warn"),
                                                    I18n.translate("warn.toast.pirated"), Nothing, False, Toast.ToastLength.Long, AddressOf piratedNotificationClick) With {.backColor = Color.Red, .foreColor = Color.Yellow}
 
+    Public Declare Auto Function ReleaseCapture Lib "user32.dll" () As Boolean
+    Public Declare Auto Function SendMessage Lib "user32.dll" (hWnd As IntPtr, msg As Integer, wParam As Integer, lParam As Integer) As Integer
 
     Public Shared Sub piratedNotificationClick(toast As Toast, e As MouseEventArgs)
         If MsgBox(I18n.translate("warn.toast.piratedDlg"), vbOKOnly, I18n.translate("warn")) = vbOK Then
@@ -12,7 +14,7 @@ Public Class MainGUI
     End Sub
 
     Private Sub MainGUI_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        ToastRenderer.bindForm(Me)
+        ToastRenderer.bindForm(Me, 30)
         AddHandler Me.MouseDown, AddressOf ToastRenderer.handleFormClick
         ToastRenderer.addToast(ServerSideManager.fetchingInfoNotif)
         ServerSideManager.fetchFromServer()
@@ -26,18 +28,6 @@ Public Class MainGUI
         If Me.WindowState = FormWindowState.Maximized Then
             Me.WindowState = FormWindowState.Normal
         End If
-    End Sub
-
-    Protected Overrides Sub WndProc(ByRef m As Message)
-        Select Case m.Msg
-            Case &H84
-                MyBase.WndProc(m)
-                If (CType(m.Result, Integer) = &H1) Then
-                    m.Result = CType(&H2, IntPtr)
-                End If
-                Return
-        End Select
-        MyBase.WndProc(m)
     End Sub
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
@@ -76,4 +66,8 @@ Public Class MainGUI
         Label1.Text = PremiumVerifier.Username
     End Sub
 
+    Private Sub Panel1_MouseDown(sender As Object, e As MouseEventArgs) Handles Panel1.MouseDown, LabelTitle.MouseDown
+        ReleaseCapture()
+        SendMessage(Me.Handle, &HA1, &H2, 0)
+    End Sub
 End Class

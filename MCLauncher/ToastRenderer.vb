@@ -12,13 +12,15 @@ Public NotInheritable Class ToastRenderer
     ''' Bind the form to the renderer.
     ''' </summary>
     ''' <param name="f">The form to bind to.</param>
-    Public Shared Sub bindForm(ByRef f As Form)
+    Public Shared Sub bindForm(ByRef f As Form, Optional offset As Integer = 0)
         size = f.Size
         font = f.Font
         boundBC = f.BackColor
         panel = New PictureBox()
+        panel.Top += offset
         panel.BackColor = Color.Transparent
         f.Controls.Add(panel)
+        panel.BringToFront()
         timer.Interval = 1
         timer.Start()
         AddHandler panel.MouseDown, AddressOf handleFormClick

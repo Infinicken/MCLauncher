@@ -178,7 +178,11 @@ Public Class PremiumVerifier
         End If
         Dim dlg As New FileDownload
         dlg.StartDownloadingAwait("https://minotar.net/avatar/" & username, Application.StartupPath & "\cache\" & username & ".png", "AWAIT_TRANSLATE", True)
-        Return CType(Image.FromFile(Application.StartupPath & "\cache\" & username & ".png"), Bitmap)
+        Try
+            Return CType(Image.FromFile(Application.StartupPath & "\cache\" & username & ".png"), Bitmap)
+        Catch ex As Exception
+            Return New Bitmap(64, 64)
+        End Try
     End Function
 
     Public Shared Function getPlayerUUID(username As String) As String

@@ -176,6 +176,7 @@
     </Compile>
     <Compile Include="PluginInject.vb" />
     <Compile Include="PremiumVerifier.vb" />
+    <Compile Include="ProfileManager.vb" />
     <Compile Include="ScriptEditor.Designer.vb">
       <DependentUpon>ScriptEditor.vb</DependentUpon>
     </Compile>
@@ -189,6 +190,7 @@
     <Compile Include="ScriptPermReq.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="ScriptSandBox.vb" />
     <Compile Include="ScriptServer.vb" />
     <Compile Include="SelfUpdate.vb" />
     <Compile Include="ServerSideManager.vb" />
@@ -198,6 +200,7 @@
     <Compile Include="Settings.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="SyntaxTree.vb" />
     <Compile Include="ToastRenderer.vb" />
   </ItemGroup>
   <ItemGroup>

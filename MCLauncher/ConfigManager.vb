@@ -81,7 +81,7 @@ ReadConfig:
 
     Public Shared Sub createSessionLock()
         If File.Exists("session.lock") Then
-            MsgBox("Application was terminated abnormally, or another instance of the application is running.")
+            'MsgBox("Application was terminated abnormally, or another instance of the application is running.")
         Else
             Using session As New StreamWriter("session.lock")
                 session.Write("")

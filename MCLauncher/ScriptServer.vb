@@ -15,11 +15,18 @@ Public NotInheritable Class ScriptServer
                 Return Nothing
             End If
         End Function
-        Public Sub alert(prompt As String)
+        Public Sub alert(prompt As Object)
             If scriptAnnoyances < Byte.MaxValue Then
-                MsgBox(prompt, CType(vbOKOnly, MsgBoxStyle), CStr(scriptAnnoyances))
+                MsgBox(prompt.ToString(), CType(vbOKOnly, MsgBoxStyle), CStr(scriptAnnoyances))
+                If TypeOf (prompt) Is Dictionary(Of String, Object) Then
+                    Dim dict = CType(prompt, Dictionary(Of String, Object))
+                    For Each item As KeyValuePair(Of String, Object) In dict
+                        MsgBox(item.Key + ": " + item.Value.ToString, vbOKOnly, CStr(scriptAnnoyances))
+                        scriptAnnoyances += CShort(1)
+                    Next
+                End If
                 scriptAnnoyances += CShort(1)
-            End If
+                End If
         End Sub
         Public Function prompt(p As String) As String
             If scriptAnnoyances < Byte.MaxValue Then
@@ -213,9 +220,15 @@ Public NotInheritable Class ScriptServer
             End Property
         End Class
         Public ReadOnly Property CodeEditorAPI As New CodeEditorWrapper()
-        Public Sub test()
-            MsgBox(String.Format("{0}", "Too many args", "123"))
-            MsgBox(String.Format("{0},{1}", "Insufficient args"))
+        Public Sub test(a As String)
+            Dim result As List(Of ICmdValue) = SyntaxTree.parseTreeComplex(a)
+            For Each r As ICmdValue In result
+                If r Is Nothing Then Continue For
+                MsgBox(r.ToString())
+            Next
+        End Sub
+        Public Sub test2(a As String)
+            sandboxTest.run(SyntaxTree.parseTreeComplex(a))
         End Sub
         Public Function getScriptRunningTime() As Long
             Return scriptStopwatch.ElapsedMilliseconds
@@ -300,6 +313,7 @@ Public NotInheritable Class ScriptServer
     End Class
 #End Region
     Public Shared jsContext As Noesis.Javascript.JavascriptContext
+    Public Shared sandboxTest As New ScriptSandBox
     Public Shared scriptData As New Dictionary(Of String, String)
     Private Shared scriptStopwatch As Stopwatch
     Private Shared scriptAnnoyances As Short = 0
@@ -310,16 +324,26 @@ Public NotInheritable Class ScriptServer
     End Sub
 
     Shared Sub New()
-        ThreadWrapper.createThread("JavaScript-V8")
-        ThreadWrapper.createThread("JavaScript-V8-Helper")
-        jsContext = New Noesis.Javascript.JavascriptContext()
-        jsContext.SetParameter("DotNet", New DotNetCodeWrapper())
-        jsContext.SetParameter("console", New ConsoleWrapper())
-        jsContext.SetParameter("MojangAPI", New MojangAPIWrapper())
-        jsContext.SetParameter("Premium", New PremiumWrapper())
-        jsContext.SetParameter("Launcher", New LauncherWrapper())
+        Try
+            ThreadWrapper.createThread("JavaScript-V8")
+            ThreadWrapper.createThread("JavaScript-V8-Helper")
+            jsContext = New Noesis.Javascript.JavascriptContext()
+            jsContext.SetParameter("DotNet", New DotNetCodeWrapper())
+            jsContext.SetParameter("console", New ConsoleWrapper())
+            jsContext.SetParameter("MojangAPI", New MojangAPIWrapper())
+            jsContext.SetParameter("Premium", New PremiumWrapper())
+            jsContext.SetParameter("Launcher", New LauncherWrapper())
 
-        jsContext.Run("alert=DotNet.alert;prompt=DotNet.prompt;help=Launcher.help;help_module=Launcher.help_module;help_method=Launcher.help_method;help_field=Launcher.help_field;help_prop=Launcher.help_prop;")
+            jsContext.Run("alert=DotNet.alert;prompt=DotNet.prompt;help=Launcher.help;help_module=Launcher.help_module;help_method=Launcher.help_method;help_field=Launcher.help_field;help_prop=Launcher.help_prop;")
+            jsContext.Run("function FunctionPointer(func) {
+this.source = typeof func == 'function' ? /function(?:.+?){(.+?)}/.exec(func.toString())[1] : '';
+this.args = typeof func == 'function' ? /function(.+?){(?:.+?)}/.exec(func.toString())[1] : '';
+this.lines = this.source.split(';');
+this.arg = this.args.split(' ');
+}")
+        Catch ex As Exception
+            MsgBox(ex)
+        End Try
     End Sub
     Public Shared Sub run(text As String)
         ThreadWrapper.addScheduledTask("JavaScript-V8", $"mdzzqwq_{(New Random()).Next(1, 10001)}",
@@ -328,45 +352,36 @@ Public NotInheritable Class ScriptServer
                                          scriptAnnoyances = 0
                                          scriptStopwatch = New Stopwatch()
                                          scriptStopwatch.Start()
-                                         jsContext.Run(text)
+                                         sandboxTest.run(SyntaxTree.parseTreeComplex(text))
                                          scriptStopwatch.Stop()
                                          ScriptPermMgr.endSession()
                                      Catch ex As Noesis.Javascript.JavascriptException
                                          MsgBox(ex.Message)
                                          scriptStopwatch.Stop()
                                          ScriptPermMgr.endSession()
-                                     Catch ex As AccessViolationException
-                                         MsgBox(ex.Message, vbCritical Or vbOKOnly, "Critical error")
-                                         End
                                      End Try
                                  End Sub)
-        ThreadWrapper.addScheduledTask("JavaScript-V8-Helper", $"mdzzqwq_{(New Random()).Next(1, 10001)}",
-                                 Sub()
-                                     Dim hasRefused As Boolean = False
-                                     While scriptStopwatch IsNot Nothing AndAlso (scriptStopwatch.IsRunning Or tempPause)
-                                         If (Not hasRefused) AndAlso scriptStopwatch.ElapsedMilliseconds > tooLongPromptTime Then
-                                             If MsgBox(I18n.translate("warn.script.tooLong", CStr(tooLongPromptTime \ 1000)), vbYesNo, "JavaScript") = vbYes Then
-                                                 jsContext.TerminateExecution()
-                                                 scriptStopwatch.Stop()
-                                                 Exit Sub
-                                             Else
-                                                 hasRefused = True
-                                             End If
-                                         End If
-                                         If scriptStopwatch.ElapsedMilliseconds > immediateDeathTime Then
-                                             jsContext.TerminateExecution()
-                                             scriptStopwatch.Stop()
-                                             MsgBox(I18n.translate("err.script.forceDeath", CStr(immediateDeathTime \ 1000)), CType(vbCritical + vbOKOnly, MsgBoxStyle), "JavaScript")
-                                             Exit Sub
-                                         End If
-                                     End While
-                                 End Sub)
-        Return
-        'Old code
-        Dim cmdArgs() As String = parseParentheness(text)
-        If cmdArgs.Length >= 1 Then
-            'evaluateFunctionReturn(text)
-        End If
+        'ThreadWrapper.addScheduledTask("JavaScript-V8-Helper", $"mdzzqwq_{(New Random()).Next(1, 10001)}",
+        '                         Sub()
+        '                             Dim hasRefused As Boolean = False
+        '                             While scriptStopwatch IsNot Nothing AndAlso (scriptStopwatch.IsRunning Or tempPause)
+        '                                 If (Not hasRefused) AndAlso scriptStopwatch.ElapsedMilliseconds > tooLongPromptTime Then
+        '                                     If MsgBox(I18n.translate("warn.script.tooLong", CStr(tooLongPromptTime \ 1000)), vbYesNo, "JavaScript") = vbYes Then
+        '                                         jsContext.TerminateExecution()
+        '                                         scriptStopwatch.Stop()
+        '                                         Exit Sub
+        '                                     Else
+        '                                         hasRefused = True
+        '                                     End If
+        '                                 End If
+        '                                 If scriptStopwatch.ElapsedMilliseconds > immediateDeathTime Then
+        '                                     jsContext.TerminateExecution()
+        '                                     scriptStopwatch.Stop()
+        '                                     MsgBox(I18n.translate("err.script.forceDeath", CStr(immediateDeathTime \ 1000)), CType(vbCritical + vbOKOnly, MsgBoxStyle), "JavaScript")
+        '                                     Exit Sub
+        '                                 End If
+        '                             End While
+        '                         End Sub)
     End Sub
 
     Public Shared Sub readConfig()

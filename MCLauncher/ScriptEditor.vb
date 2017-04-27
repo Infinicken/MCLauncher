@@ -53,11 +53,12 @@
         KeywordHighlight.create("if", Color.Blue, prettyFont)
         KeywordHighlight.create("new", Color.Blue, prettyFont)
         KeywordHighlight.create("this", Color.Blue, prettyFont)
+        KeywordHighlight.create("!", Color.Red, New Font(prettyFont, FontStyle.Bold))
         'Create KeywordTooltips
         KeywordTooltip.create("Launcher", "Launcher wrapper")
-        KeywordTooltip.create("alert", "function alert(val)")
-        KeywordTooltip.create("prompt", "string prompt(prompt)")
-        KeywordTooltip.create("eval", "/* Language construct */ function eval(...)")
+        KeywordTooltip.create("alert(*)*", "function alert(str)")
+        KeywordTooltip.create("prompt(*)*", "string prompt(str)")
+        KeywordTooltip.create("eval(*)*", "/* Language construct */ function eval(...)")
     End Sub
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
@@ -80,6 +81,7 @@
         Next
         ClassCheck()
         StringHighlight()
+        DirectiveHighlight()
         RichTextBox1.SelectionStart = sel
         RichTextBox1.SelectionLength = sell
         RichTextBox1.Show()
@@ -109,6 +111,25 @@ SearchForMatchingQuotationMark:
             RichTextBox1.SelectionLength = jx - ix + 1
             RichTextBox1.SelectionColor = Color.DarkRed
             ix = jx + 1
+        End While
+    End Sub
+
+    Private Sub DirectiveHighlight()
+        Dim ix = 0
+        While True
+            ix = RichTextBox1.Text.IndexOf("#"c, ix)
+            If ix = -1 Then
+                Exit While
+            End If
+            Dim selstart = RichTextBox1.SelectionStart
+            Dim sellen = RichTextBox1.SelectionLength
+            RichTextBox1.SelectionStart = ix
+            RichTextBox1.SelectionLength = Math.Min(Math.Max(Math.Max(RichTextBox1.Text.IndexOf(" "c, ix), RichTextBox1.Text.IndexOf(";"c, ix)), RichTextBox1.Text.IndexOf(vbLf, ix)).map(Function(a) If(a = -1, 99999, a)), RichTextBox1.TextLength) - ix
+            RichTextBox1.SelectionColor = Color.Gray
+            RichTextBox1.SelectionFont = New Font(RichTextBox1.Font, FontStyle.Italic)
+            RichTextBox1.SelectionStart = selstart
+            RichTextBox1.SelectionLength = sellen
+            ix = ix + 1
         End While
     End Sub
 
@@ -152,26 +173,31 @@ SearchForMatchingQuotationMark:
         SetStyle(ControlStyles.AllPaintingInWmPaint, True)
         SetStyle(ControlStyles.OptimizedDoubleBuffer, True)
     End Sub
-
+    Private internalTimer As Timer, hidden As Boolean = True
     Private Sub RichTextBox1_MouseMove(sender As Object, e As MouseEventArgs) Handles RichTextBox1.MouseMove
         Dim chrInd As Integer = RichTextBox1.GetCharIndexFromPosition(e.Location)
         Dim line As Integer = RichTextBox1.GetLineFromCharIndex(chrInd)
         If line = 0 AndAlso RichTextBox1.Lines.Length = 0 Then Return
         Dim firstChrInd As Integer = RichTextBox1.GetFirstCharIndexFromLine(line)
+        Dim lastChrInd As Integer = RichTextBox1.Text.IndexOf(vbLf, firstChrInd).map(Function(a) If(a = -1, RichTextBox1.TextLength, a))
         Dim lineStr As String = RichTextBox1.Lines(line)
-        Dim maxMapper As Func(Of Integer, Integer) = Function(a As Integer) If(a = -1, -1, a)
-        Dim minMapper As Func(Of Integer, Integer) = Function(a As Integer) If(a = -1, lineStr.Length - 1, a)
-        Dim lineFirstSpace As Integer = Math.Max(RichTextBox1.Text.LastIndexOf(" ", chrInd).map(maxMapper), RichTextBox1.Text.LastIndexOf(".", chrInd).map(maxMapper))
-        Dim lineLastSpace As Integer = Math.Min(Math.Min(RichTextBox1.Text.IndexOf(" ", chrInd).map(minMapper), RichTextBox1.Text.IndexOf(".", chrInd).map(minMapper)), RichTextBox1.Text.IndexOf("(", chrInd).map(minMapper))
-        If lineLastSpace = -1 Then lineLastSpace = lineStr.Length - 1
-        If lineLastSpace - lineFirstSpace < 0 Then Return
-        Dim pozhenStr As String = RichTextBox1.Text.Substring(lineFirstSpace + 1, lineLastSpace - lineFirstSpace).Trim().map(Function(a As String) If(a Like "*." OrElse a Like "*(", a.right(1), a))
+
+        Dim pozhenStr As String = lineStr
+        LabelTest.Text = $"({firstChrInd},{lastChrInd},{chrInd}:{RichTextBox1.Text(chrInd)}){lineStr}"
         For Each item As KeywordTooltip In registeredTooltip
-            If item.key = pozhenStr Then
-                If Not ToolTipKeyword.Active Then ToolTipKeyword.Show(item.tooltip, Me, e.Location, 2500)
+            If pozhenStr Like item.key Then
+                If hidden Then
+                    hidden = False
+                    internalTimer = New Timer() With {.Interval = 2500}
+                    AddHandler internalTimer.Tick, Sub()
+                                                       hidden = True
+                                                       internalTimer.Stop()
+                                                   End Sub
+                    ToolTipKeyword.Show(item.tooltip, Me, e.Location, 2500)
+                    internalTimer.Start()
+                End If
                 Exit Sub
             End If
         Next
-        LabelTest.Text = pozhenStr
     End Sub
 End Class
